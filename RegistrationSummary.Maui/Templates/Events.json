@@ -1,0 +1,43 @@
+[
+  {
+    "Id": 1,
+    "Name": "",
+    "EventType": "RegularSemester",
+    "CoursesAreMerged": false,
+    "SpreadSheetId": "<tu wstaw kod do google sheet>",
+    "RawDataColumns": {
+      "Email": "C",
+      "FirstName": "E",
+      "LastName": "D",
+      "PhoneNumber": "F",
+      "Course": "G",
+      "Role": "H",
+      "Partner": "I",
+      "Installment": "M"
+    },
+    "PreprocessedColumns": {
+      "Email": "C",
+      "FirstName": "E",
+      "LastName": "D",
+      "PhoneNumber": "F",
+      "Course": "G",
+      "Role": "H",
+      "Partner": "I",
+      "Installment": "M",
+      "Login": "A",
+      "Accepted": "O"
+    },
+    "Products": [
+      {
+        "Type": "Course",
+        "Name": "Intro A",
+        "Code": "INTA",
+        "Start": "2024-01-08",
+        "DayOfWeek": "Monday",
+        "Time": "19:10",
+        "Location": "",
+        "IsSolo": false
+      }
+    ]
+  }
+]

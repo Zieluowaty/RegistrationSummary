@@ -1,0 +1,122 @@
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:RegistrationSummary.Maui.ViewModels"
+             xmlns:converters="clr-namespace:RegistrationSummary.Maui.Converters"
+             x:Class="RegistrationSummary.Maui.Views.MainPageView">
+
+    <ContentPage.Resources>
+        <converters:TimeSpanToTimeStringConverter x:Key="TimeSpanConverter" />
+        <converters:IsOddRowToBackgroundColorConverter x:Key="IsOddRowToBackgroundColorConverter" />
+
+        <Style x:Key="HeaderLabelStyle" TargetType="Label">
+            <Setter Property="TextTransform" Value="Uppercase" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="HorizontalTextAlignment" Value="Center" />
+        </Style>
+        
+    </ContentPage.Resources>
+
+    <VerticalStackLayout Spacing="20" Margin="10">
+        <HorizontalStackLayout>
+            <Label Text="Choose event" VerticalOptions="Center"/>
+
+            <Picker 
+                Margin="10, 0, 0, 0" 
+                ItemsSource="{Binding Events}"
+                SelectedItem="{Binding SelectedEvent, Mode=TwoWay}"
+                WidthRequest="250"
+                HorizontalOptions="Start"
+                VerticalOptions="Center">
+                <Picker.ItemDisplayBinding>
+                    <Binding Path="Name"/>
+                </Picker.ItemDisplayBinding>
+            </Picker>
+
+            <Button 
+                Margin="10, 0, 0, 0" 
+                Text="Edit selected event"
+                Command="{Binding EditEventCommand}" />
+            <Button 
+                Margin="10, 0, 0, 0" 
+                Text="Add new event" 
+                Command="{Binding AddNewEventCommand}" />
+            <Button 
+                Margin="10, 0, 0, 0" 
+                Text="Clone selected event" 
+                Command="{Binding CloneEventCommand}" />
+        </HorizontalStackLayout>
+
+        <Frame 
+           Padding="10"
+           BorderColor="Black"
+           HasShadow="False" 
+>
+            <Grid MaximumHeightRequest="670">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="45"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <HorizontalStackLayout Grid.Row="0" Spacing="10">
+                    <Label Text="Code" WidthRequest="50" Style="{StaticResource HeaderLabelStyle}" />
+                    <Label Text="Name" WidthRequest="500" Style="{StaticResource HeaderLabelStyle}" />                    
+                    <Label Text="Start" WidthRequest="100" Style="{StaticResource HeaderLabelStyle}" />
+                    <Label Text="Day" WidthRequest="80" Style="{StaticResource HeaderLabelStyle}" />
+                    <Label Text="Hour" WidthRequest="60" Style="{StaticResource HeaderLabelStyle}" />
+                    <Label Text="Is solo" WidthRequest="100" Style="{StaticResource HeaderLabelStyle}" />
+                    <Label Text="Place" WidthRequest="500" Style="{StaticResource HeaderLabelStyle}" />
+                </HorizontalStackLayout>
+                <ScrollView Grid.Row="1">
+                    <CollectionView 
+                        ItemsSource="{Binding SelectedEvent.Products}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <HorizontalStackLayout 
+                                    BackgroundColor="{Binding IsOddRow, Converter={StaticResource IsOddRowToBackgroundColorConverter}}"
+                                    Spacing="10">
+                                    <Label Text="{Binding Code}" WidthRequest="50" HorizontalTextAlignment="End" />
+                                    <Label Text="{Binding Name}" WidthRequest="500" HorizontalOptions="Start" />                                    
+                                    <Label Text="{Binding Start, StringFormat='{0:yyyy-MM-dd}'}" WidthRequest="100" HorizontalTextAlignment="Center" />
+                                    <Label Text="{Binding DayOfWeek}" WidthRequest="80" HorizontalTextAlignment="End" />
+                                    <Label Text="{Binding Time, StringFormat=\{0:h\\:mm\}}" WidthRequest="60" HorizontalTextAlignment="Start" />
+                                    <Label Text="{Binding IsSolo}" WidthRequest="100" HorizontalTextAlignment="Center" />
+                                    <Label Text="{Binding Location}" WidthRequest="500" MaxLines="1" />
+                                </HorizontalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </ScrollView>
+            </Grid>
+        </Frame>
+
+        <HorizontalStackLayout Spacing="10">
+            <Button Text="Clear tabs" Command="{Binding ClearExcelCommand}" />
+            <Button Text="Generate tabs" Command="{Binding GenerateTabsCommand}" />
+            <Button 
+                Text="Populate new singups" 
+                Command="{Binding PopulateNewSingupsCommand}"
+                IsVisible="{Binding PopulateNewSingupsButtonIsVisible}"/>
+        </HorizontalStackLayout>
+
+        <HorizontalStackLayout Spacing="10">
+            <Label Text="Sending Emails"/>
+            <Button Text="Send ALL emails" Command="{Binding SendEmailsCommand}" CommandParameter="All" />
+            <Button Text="Send Confirmation emails" Command="{Binding SendEmailsCommand}" CommandParameter="Confirmation" />
+            <Button Text="Send Waiting List emails" Command="{Binding SendEmailsCommand}" CommandParameter="WaitingList" />
+            <Button Text="Send Not Enough People emails" Command="{Binding SendEmailsCommand}" CommandParameter="NotEnoughPeople" />
+            <Button Text="Send Full Class emails" Command="{Binding SendEmailsCommand}" CommandParameter="FullClass" />
+            <Button Text="Send Missing Partner emails" Command="{Binding SendEmailsCommand}" CommandParameter="MissingPartner" />
+        </HorizontalStackLayout>
+        <HorizontalStackLayout Spacing="10">
+            <Label Text="Sending Test Emails"/>
+            <Button Text="Send ALL emails" Command="{Binding SendEmailsCommand}" CommandParameter="All,True" />
+            <Button Text="Send Confirmation emails" Command="{Binding SendEmailsCommand}" CommandParameter="Confirmation,True" />
+            <Button Text="Send Waiting List emails" Command="{Binding SendEmailsCommand}" CommandParameter="WaitingList,True" />
+            <Button Text="Send Not Enough People emails" Command="{Binding SendEmailsCommand}" CommandParameter="NotEnoughPeople,True" />
+            <Button Text="Send Full Class emails" Command="{Binding SendEmailsCommand}" CommandParameter="FullClass,True" />
+            <Button Text="Send Missing Partner emails" Command="{Binding SendEmailsCommand}" CommandParameter="MissingPartner,True" />
+        </HorizontalStackLayout>
+
+    </VerticalStackLayout>
+</ContentPage>

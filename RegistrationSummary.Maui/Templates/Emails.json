@@ -1,0 +1,50 @@
+[
+  {
+    "Name": "Confirmation",
+    "Title": "",
+    "Header": [
+    ],
+
+    "PaymentInfo": [
+    ],
+
+    "CourseInfo": [
+    ],
+
+    "Footer": [
+    ]
+  },
+  {
+    "Name": "WaitingList",
+    "Title": "",
+    "Header": [
+    ],
+
+    "CourseInfo": [
+    ],
+
+    "Footer": [
+    ]
+  },
+  {
+    "Name": "FullClass",
+    "Title": "",
+    "Header": [
+    ],
+
+    "CourseInfo": [
+    ],
+
+    "Footer": [
+    ]
+  },
+  {
+    "Name": "MissingPartner",
+    "Title": "",
+    "Header": [
+    ],
+
+    "Footer": [
+    ]
+  }
+]

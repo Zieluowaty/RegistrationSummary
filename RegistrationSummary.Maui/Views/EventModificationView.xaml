@@ -1,0 +1,305 @@
+<ContentPage 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    x:Class="RegistrationSummary.Maui.Views.EventModificationView"
+    x:Name="ContentPageView">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.4*" />
+            <ColumnDefinition Width="0.6*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="65" />
+        </Grid.RowDefinitions>
+
+        <Frame Margin="10" Padding="10">
+            <Grid Grid.Column="0" Grid.Row="0" Padding="20">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="200" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <VerticalStackLayout Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+                    <HorizontalStackLayout>
+                        <Label Text="Name" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding Name}" WidthRequest="400">
+                            <Entry.Behaviors>
+                                <toolkit:TextValidationBehavior 
+                                x:Name="nameValidator"
+                                MinimumLength="10" 
+                                MaximumLength="100"
+                                Flags="ValidateOnAttaching,ValidateOnValueChanged"/>
+                            </Entry.Behaviors>
+                        </Entry>
+                    </HorizontalStackLayout>
+                    
+                    <HorizontalStackLayout>
+                        <Label Text="Start Date" WidthRequest="150" HorizontalTextAlignment="End" Padding="10"/>
+                        <DatePicker Date="{Binding StartDate, Mode=TwoWay}" />
+                    </HorizontalStackLayout>
+                    
+                    <HorizontalStackLayout>
+                        <Label Text="Courses are merged" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <CheckBox IsChecked="{Binding CoursesAreMerged}" />
+                    </HorizontalStackLayout>
+
+                    <HorizontalStackLayout>
+                        <Label Text="Spreadsheet Id" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding SpreadSheetId}" WidthRequest="400" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Grid.Row="1" Grid.Column="0" Margin="0,10,0,0">
+                    <Label Padding="20" HorizontalOptions="Center" Text="Raw data tab columns" />
+                    <HorizontalStackLayout>
+                        <Label Text="DateTime" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding RawDataColumns.DateTime}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Email" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding RawDataColumns.Email}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="First name" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding RawDataColumns.FirstName}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Last name" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding RawDataColumns.LastName}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Phone number" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding RawDataColumns.PhoneNumber}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Course" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding RawDataColumns.Course}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Role" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding RawDataColumns.Role}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Partner" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding RawDataColumns.Partner}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Installment" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding RawDataColumns.Installment}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Grid.Row="1" Grid.Column="1" Margin="0,10,0,0">
+                    <Label Padding="20" HorizontalOptions="Center" Text="Preprocessed tab columns" />
+                    <HorizontalStackLayout>
+                        <Label Text="DateTime" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding PreprocessedColumns.DateTime}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Login" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding PreprocessedColumns.Login}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Email" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding PreprocessedColumns.Email}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="First name" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding PreprocessedColumns.FirstName}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Last name" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding PreprocessedColumns.LastName}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Phone number" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding PreprocessedColumns.PhoneNumber}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Course" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding PreprocessedColumns.Course}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Role" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding PreprocessedColumns.Role}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Partner" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding PreprocessedColumns.Partner}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Installment" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding PreprocessedColumns.Installment}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <Label Text="Accepted" WidthRequest="150" HorizontalTextAlignment="End" Padding="10" />
+                        <Entry Text="{Binding PreprocessedColumns.Accepted}" WidthRequest="50" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+
+            </Grid>
+        </Frame>
+
+        <Grid Grid.Column="1" Grid.Row="0" Padding="10">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="65" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <Button 
+                WidthRequest="200"
+                Grid.Row="0" 
+                Text="Add new course" 
+                Command="{Binding AddNewCourseCommand}" />
+
+            <CollectionView 
+                Grid.Row="1"
+                VerticalScrollBarVisibility="Always" 
+                ItemsSource="{Binding Courses}"
+                EmptyView="No course created">
+
+                <CollectionView.Header>
+                    <VerticalStackLayout BackgroundColor="AntiqueWhite" Padding="5">
+                        <Label Text="Courses" HorizontalOptions="Center" FontSize="Large" />
+                    </VerticalStackLayout>
+                </CollectionView.Header>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Margin="10">
+                            <VerticalStackLayout>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width=".5*" />
+                                        <ColumnDefinition Width=".3*" />
+                                        <ColumnDefinition Width=".2*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="75"/>
+                                        <RowDefinition Height="50"/>
+                                    </Grid.RowDefinitions>
+
+                                    <VerticalStackLayout Grid.Column="0">
+                                        <Label Grid.Row="0" HorizontalOptions="Center" Text="Course name" Margin="3" />
+                                        <Entry Grid.Row="1" Text="{Binding Name}" Margin="3" />
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="1">
+                                        <Label Grid.Row="0" HorizontalOptions="Center" Text="Course shortcut" Margin="3" />
+                                        <Entry Grid.Row="1" Text="{Binding Code}" Margin="3" />
+                                    </VerticalStackLayout>
+
+                                    <Button 
+                                        WidthRequest="120"
+                                        MaximumHeightRequest="50"
+                                        VerticalOptions="Start"
+                                        Grid.Row="0"
+                                        Grid.RowSpan="2"
+                                        Grid.Column="2"
+                                        BackgroundColor="MediumVioletRed"
+                                        Text="Delete course" 
+                                        HorizontalOptions="End"
+                                        Command="{Binding Source={x:Reference ContentPageView}, Path=BindingContext.DeleteCourseCommand}"
+                                        CommandParameter="{Binding Name}"/>
+                                </Grid>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <VerticalStackLayout Grid.Column="0">
+                                        <Label Grid.Row="0" Text="Start date" Margin="3" HorizontalOptions="Center" />
+                                        <DatePicker Grid.Row="1" Date="{Binding Start}" Margin="3" HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="1">
+                                        <Label Grid.Row="0" Text="End date" Margin="3" HorizontalOptions="Center" />
+                                        <DatePicker Grid.Row="1" Date="{Binding End}" Margin="3" HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="2">
+                                        <Label Grid.Row="0" Text="Day of week" Margin="3" HorizontalOptions="Center" />
+                                        <Picker Grid.Row="1" SelectedItem="{Binding DayOfWeek}" Margin="3" HorizontalOptions="Center">
+                                            <Picker.Items>
+                                                <x:String>Monday</x:String>
+                                                <x:String>Tuesday</x:String>
+                                                <x:String>Wendesday</x:String>
+                                                <x:String>Thursday</x:String>
+                                                <x:String>Friday</x:String>
+                                                <x:String>Saturday</x:String>
+                                                <x:String>Sunday</x:String>
+                                            </Picker.Items>
+                                        </Picker>
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="3">
+                                        <Label Grid.Row="0" Text="Time" Margin="3" HorizontalOptions="Center" />
+                                        <TimePicker Grid.Row="1" Time="{Binding Time}" Format="HH:mm" Margin="3, 9, 3, 3" HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                </Grid>
+
+                                <Label Text="Location" Margin="3" HorizontalOptions="Center" />
+                                <Entry Text="{Binding Location}" Margin="3" />
+
+                                <Label Text="Additional comment (mail)" Margin="3" HorizontalOptions="Center" />
+                                <Entry Text="{Binding AdditionalComment}" Margin="3" />
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width=".5*" />
+                                        <ColumnDefinition Width=".5*" />
+                                    </Grid.ColumnDefinitions>
+                                    <VerticalStackLayout Grid.Column="0">
+                                        <Label Grid.Row="0" Text="Solo classes" Margin="3" HorizontalOptions="Center" />
+                                        <CheckBox Grid.Row="1" IsChecked="{Binding IsSolo}" Margin="3" HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="1">
+                                        <Label Grid.Row="0" Text="Shorter course" Margin="3" HorizontalOptions="Center" />
+                                        <CheckBox Grid.Row="1" IsChecked="{Binding IsShorter}" Margin="3" HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                </Grid>
+
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+
+        <HorizontalStackLayout 
+            Grid.Column="0" 
+            Grid.ColumnSpan="2" 
+            Grid.Row="1"
+            HorizontalOptions="Start">
+            <Button                  
+                WidthRequest="200"
+                Margin="10"
+                HorizontalOptions="End"
+                BackgroundColor="ForestGreen"
+                Text="Save" 
+                Command="{Binding SaveCommand}" />
+
+            <Button
+                WidthRequest="200"
+                Margin="10"
+                HorizontalOptions="End"
+                BackgroundColor="MediumVioletRed"
+                Text="Cancel" 
+                Command="{Binding CancelCommand}" />
+        </HorizontalStackLayout>
+
+    </Grid>
+
+
+</ContentPage>

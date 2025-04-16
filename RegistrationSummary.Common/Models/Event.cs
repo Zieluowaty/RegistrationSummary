@@ -1,49 +1,51 @@
+using Org.BouncyCastle.Utilities;
 using RegistrationSummary.Common.Configurations;
 using RegistrationSummary.Common.Enums;
-using System.Text.Json.Serialization;
+using RegistrationSummary.Common.Models.Interfaces;
 
 namespace RegistrationSummary.Common.Models;
 
 public class Event
 {
-	public int Id { get; set; }
-	public string Name { get; set; }
-	public DateTime StartDate { get; set; }
-	public EventType EventType { get; set; }
-	public bool CoursesAreMerged { get; set; }
-	public string SpreadSheetId { get; set; }
-	public ColumnsConfiguration RawDataColumns { get; set; }
-	public ColumnsConfiguration PreprocessedColumns { get; set; }
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public DateTime StartDate { get; set; }
+    public EventType EventType { get; }
+    public bool CoursesAreMerged { get; }
+    public string SpreadSheetId { get; }
+    public ColumnsConfiguration RawDataColumns { get; }
+    public ColumnsConfiguration PreprocessedColumns { get; }
+    public List<IProduct> Products { get; }
 
-	[JsonPropertyName("Products")]
-	public List<Course> Courses { get; set; }
+    public Event(int id, string name, DateTime? startDate, EventType eventType, bool coursesAreMerged, string spreadSheetId, ColumnsConfiguration rawDataColumns, ColumnsConfiguration preprocessedColumns, List<IProduct> products)
+    {
+        Id = id;
+        Name = name;
+        StartDate = startDate ?? DateTime.Now;
+        EventType = eventType;
+        CoursesAreMerged = coursesAreMerged;
+        SpreadSheetId = spreadSheetId;
+        RawDataColumns = rawDataColumns;
+        PreprocessedColumns = preprocessedColumns;
+        Products = products;
 
-	public Event() { }
+        for (int i = 0; i < Products.Count; i++)
+        {
+            Products[i].IsOddRow = i % 2 != 0;
+        }
+    }
 
-	public Event(int id, string name, DateTime? startDate, EventType eventType, bool coursesAreMerged, string spreadSheetId, ColumnsConfiguration rawDataColumns, ColumnsConfiguration preprocessedColumns, List<Course> courses)
-	{
-		Id = id;
-		Name = name;
-		StartDate = startDate ?? DateTime.Now;
-		EventType = eventType;
-		CoursesAreMerged = coursesAreMerged;
-		SpreadSheetId = spreadSheetId;
-		RawDataColumns = rawDataColumns;
-		PreprocessedColumns = preprocessedColumns;
-		Courses = courses;
+    public Event Clone()
+    {
+        var clonedProducts = new List<IProduct>();
+        foreach (var product in Products)
+        {
+            clonedProducts.Add(product.Clone());
+        }
 
-		for (int i = 0; i < Courses.Count; i++)
-		{
-			Courses[i].IsOddRow = i % 2 != 0;
-		}
-	}
+        var clonedRawDataColumns = RawDataColumns.Clone();
+        var clonedPreprocessedColumns = PreprocessedColumns.Clone();
 
-	public Event Clone()
-	{
-		var clonedCourses = Courses?.Select(c => c.Clone()).ToList() ?? new List<Course>();
-		var clonedRawDataColumns = RawDataColumns.Clone();
-		var clonedPreprocessedColumns = PreprocessedColumns.Clone();
-
-		return new Event(0, Name, StartDate, EventType, CoursesAreMerged, SpreadSheetId, clonedRawDataColumns, clonedPreprocessedColumns, clonedCourses);
-	}
+        return new Event(0, Name, StartDate, EventType, CoursesAreMerged, SpreadSheetId, clonedRawDataColumns, clonedPreprocessedColumns, clonedProducts);
+    }
 }

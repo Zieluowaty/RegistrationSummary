@@ -2,9 +2,7 @@
 
 public class Settings
 {
-	public string? ConfigFilesRoot { get; set; }
-	public string? SpreadsheetId { get; set; }
-	public string Mail { get; set; }
+    public string Mail { get; set; }
     public string Password { get; set; }
     public string ServerName { get; set; }
     public int ServerPort { get; set; }
@@ -20,5 +18,4 @@ public class Settings
     public string SoloText { get; set; }
     public string TestMailRecepientEmailAddress { get; set; }
     public int[] Prices { get; set; }
-    public int LogRetentionDays { get; set; } = 30;
 }

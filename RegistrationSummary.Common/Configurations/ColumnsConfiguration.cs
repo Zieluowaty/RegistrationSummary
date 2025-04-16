@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RegistrationSummary.Common.Configurations;
 
-public class ColumnsConfiguration : ObservableValidator
+	public class ColumnsConfiguration : ObservableValidator
 {
-	public string DateTime { get; set; }
+		public string DateTime { get; set; }
     [Required]
     [StringLength(2, ErrorMessage = "{0} length must be between {2} and {1}.", MinimumLength = 1)]
     public string Email { get; set; }
@@ -31,8 +31,8 @@ public class ColumnsConfiguration : ObservableValidator
     [StringLength(2, ErrorMessage = "{0} length must be between {2} and {1}.", MinimumLength = 1)]
     public string Installment { get; set; }
 
-	public string Login { get; set; }
-	public string Accepted { get; set; }
+		public string Login { get; set; }
+		public string Accepted { get; set; }
 
     public ColumnsConfiguration Clone()
     {

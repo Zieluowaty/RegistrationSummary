@@ -11,87 +11,83 @@ namespace RegistrationSummary.Common.Services;
 
 public class ExcelService
 {
-    private readonly int MAX_ROWS = 2000;
-    public readonly int ROW_STARTING_INDEX = 6;
+	private readonly int MAX_ROWS = 2000;
+	public readonly int ROW_STARTING_INDEX = 6;
 
-    public SheetsService SheetService;
-    public string SpreadSheetId => SelectedEvent?.SpreadSheetId ?? string.Empty;
-    public Event? SelectedEvent;
+	public SheetsService SheetService;
+	public string SpreadSheetId => SelectedEvent?.SpreadSheetId ?? string.Empty;
+	public Event SelectedEvent;
 
-    public string SummaryTabName = string.Empty;
-    private string _rawDataTabName = string.Empty;
-    private string _preprocessedDataTabName = string.Empty;
-    private string _groupBalanceTabName = string.Empty;
-    private string _leaderText = string.Empty;
-    private string _followerText = string.Empty;
-    private string _soloText = string.Empty;
-    private int[] _prices = Array.Empty<int>();
+	public readonly string SummaryTabName;
+	private string _rawDataTabName;
+	private string _preprocessedDataTabName;
+	private string _groupBalanceTabName;
+    private string _leaderText;
+    private string _followerText;
+    private string _soloText;
+    private int[] _prices;
 
-    public List<Request> Requests = new List<Request>();
+	public List<Request> Requests = new List<Request>();
 
-    private CellFormat CenterBottomCellFormat = new CellFormat
-    {
-        WrapStrategy = "WRAP",
-        HorizontalAlignment = "CENTER",
-        VerticalAlignment = "BOTTOM"
-    };
+	private CellFormat CenterBottomCellFormat = new CellFormat
+	{
+		WrapStrategy = "WRAP",
+		HorizontalAlignment = "CENTER",
+		VerticalAlignment = "BOTTOM"
+	};
 
-    private (CellFormat CellFormat, string Fields) CurrencyPlnCellFormat = (
-        new CellFormat
-        {
-            NumberFormat = new NumberFormat { Type = "CURRENCY", Pattern = "#,##0 \"zł\"" }
-        },
-        "userEnteredFormat.numberFormat"
-    );
+	private (CellFormat CellFormat, string Fields) CurrencyPlnCellFormat = (
+		new CellFormat
+		{
+			NumberFormat = new NumberFormat { Type = "CURRENCY", Pattern = "#,##0 \"zł\"" }
+		},
+		"userEnteredFormat.numberFormat"
+	);
 
-    private (CellFormat CellFormat, string Fields) CurrencyEurCellFormat = (
-        new CellFormat
-        {
-            NumberFormat = new NumberFormat { Type = "CURRENCY", Pattern = "#,##0 \"€\"" }
-        },
-        "userEnteredFormat.numberFormat"
-    );
+	private (CellFormat CellFormat, string Fields) CurrencyEurCellFormat = (
+		new CellFormat
+		{
+			NumberFormat = new NumberFormat { Type = "CURRENCY", Pattern = "#,##0 \"€\"" }
+		},
+		"userEnteredFormat.numberFormat"
+	);
 
-    public string? _columnNameForInstallmentsSum = null;
+	public string? _columnNameForInstallmentsSum = null;
     public string ColumnNameForInstallmentsSum
     {
-        get
-        {
-            if (_columnNameForInstallmentsSum == null)
-            {
-                var request = SheetService.Spreadsheets.Values.Get(
-                    SelectedEvent?.SpreadSheetId,
-                    $"{SummaryTabName}!E1"
-                );
-                var value = request.Execute().Values[0][0].ToString();
+		get
+		{
+			if (_columnNameForInstallmentsSum == null)
+			{
+				var request = SheetService.Spreadsheets.Values.Get(
+					SelectedEvent?.SpreadSheetId,
+					$"{SummaryTabName}!E1"
+				);
+				var value = request.Execute().Values[0][0].ToString();
 
-                _columnNameForInstallmentsSum = value ?? string.Empty;
-            }
+				_columnNameForInstallmentsSum = value ?? string.Empty;
+			}
 
-            return _columnNameForInstallmentsSum;
-        }
+			return _columnNameForInstallmentsSum;
+		}
     }
 
-    public ExcelService(SheetsService sheetService)
-    {
-        SheetService = sheetService;
-    }
-
-    public void Initialize(Event selectedEvent, string rawDataTabName, string preprocessedDataTabName, string summaryTabName,
-        string groupBalanceTabName, string leaderText, string followerText, string soloText, int[] prices)
-    {
-        SelectedEvent = selectedEvent;
-        _rawDataTabName = rawDataTabName;
-        _preprocessedDataTabName = preprocessedDataTabName;
-        _groupBalanceTabName = groupBalanceTabName;
+    public ExcelService(SheetsService sheetService, Event selectedEvent, string rawDataTabName, string preprocessedDataTabName, string summaryTabName,
+		string groupBalanceTabName, string leaderText, string followerText, string soloText, int[] prices)
+	{
+		SheetService = sheetService;
+		SelectedEvent = selectedEvent;
+		_rawDataTabName = rawDataTabName;
+		_preprocessedDataTabName = preprocessedDataTabName;
+		_groupBalanceTabName = groupBalanceTabName;
         _leaderText = leaderText;
         _followerText = followerText;
         _soloText = soloText;
         SummaryTabName = summaryTabName;
-        _prices = prices;
-    }
+		_prices = prices;
+	}
 
-    public void SetUpRegistrationsEditableTab()
+	public void SetUpRegistrationsEditableTab()
 	{
 		var spreadsheet = SheetService.Spreadsheets.Get(SpreadSheetId).Execute();
 		// Check if {_preprocessedDataTabName} tab is already existing:
@@ -274,7 +270,7 @@ public class ExcelService
         if (spreadsheet.Sheets.Any(sheet => sheet.Properties.Title.Equals(_groupBalanceTabName)))
             return;
 
-        var sheetId = AddNewSpreadSheet(_groupBalanceTabName, 20, 5 + SelectedEvent?.Courses.Count ?? 0);
+        var sheetId = AddNewSpreadSheet(_groupBalanceTabName, 20, 5 + SelectedEvent?.Products.Count ?? 0);
 
         if (sheetId == null)
             return;
@@ -305,7 +301,7 @@ public class ExcelService
         var acceptedColumn = SelectedEvent?.PreprocessedColumns.Accepted;
 		var firstInstallmentColumn = GetColumnName(GetColumnIndex(SelectedEvent?.PreprocessedColumns.Accepted) + 1);
 
-        for (var rowGroupIndex = 0; rowGroupIndex < SelectedEvent?.Courses.Count; ++rowGroupIndex)
+        for (var rowGroupIndex = 0; rowGroupIndex < SelectedEvent?.Products.Count; ++rowGroupIndex)
 		{
 			var rowIndex = rowGroupIndex + 5;
 			// ALL REGISTRATIONS
@@ -413,7 +409,7 @@ public class ExcelService
 		if (spreadsheet.Sheets.Any(sheet => sheet.Properties.Title.Equals(SummaryTabName)))
 			return;
 
-		var sheetId = AddNewSpreadSheet(SummaryTabName, 30 + SelectedEvent?.Courses.Count ?? 0, MAX_ROWS);
+		var sheetId = AddNewSpreadSheet(SummaryTabName, 30 + SelectedEvent?.Products.Count ?? 0, MAX_ROWS);
 
 		if (sheetId == null)
 			return;
@@ -432,7 +428,7 @@ public class ExcelService
 
 		// Courses headers.
 		var courseColumnIndex = 2;
-		foreach (var product in SelectedEvent?.Courses)
+		foreach (var product in SelectedEvent?.Products)
 		{
 			AddFormula(
 				sheetId.Value,
@@ -728,7 +724,7 @@ public class ExcelService
 					LastName = row[lastNameColumnIndex]?.ToString()?.Trim() ?? string.Empty,
 					PaymentAmount = int.Parse(row[ColumnNameToIndex(installmentSumColumn) + 1]?.ToString()?.Replace(" zł", "")?.Replace(" ", "") ?? "0"),
 					Installments = (row[installmentColumnIndex]?.ToString()?.Trim() ?? string.Empty).Equals("1"),
-					Courses = SelectedEvent?.Courses
+					Courses = SelectedEvent?.Products
 						.Where(
 							course =>
 								(row[coursesColumnIndex]?.ToString() ?? string.Empty)										
@@ -1484,13 +1480,4 @@ public class ExcelService
 			.SingleOrDefault(sheet => sheet.Properties.Title.Equals(sheetName))?
 			.Properties
 			.SheetId;
-
-    public void GenerateTabs(Event selectedEvent)
-    {
-        SetUpRegistrationsEditableTab();
-        SetUpSummaryTab();
-        SetUpTabForAccountants();
-        SetUpTabForNoPayments();
-        SetUpGroupBalanceTab();
-    }
 }

@@ -1,0 +1,19 @@
+{
+  "Mailer": {
+    "Mail": "addres@domain.com",
+    "Password": "ProvideYourMailPassword",
+    "ServerName": "your.server.name.com",
+    "ServerPort": 465
+  },
+  "EventsDataFilePath": "C:\\RegistrationSummary\\Events.json",
+  "EmailsTemplatesFilePath": "C:\\RegistrationSummary\\Emails.json",
+  "CredentialsFilePath": "C:\\RegistrationSummary\\Credentials.json",
+  "RawDataTabName": "registrations",
+  "PreprocessedDataTabName": "RegistrationsEditable",
+  "SummaryTabName": "Summary",
+  "GroupBalanceTabName": "GroupBalance",
+  "LeaderText": "Leader (osoba prowadząca)",
+  "FollowerText": "Follower (podąża w tańcu)",
+  "SoloText": "",
+  "Prices": [ 0, 0, 0, 0 ]
+}
