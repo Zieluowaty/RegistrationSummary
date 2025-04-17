@@ -1,23 +1,24 @@
 @page "/event/edit"
 
+@using Microsoft.JSInterop
 @using RegistrationSummary.Blazor.ViewModels
+
 @inject EventModificationPageViewModel Vm
+
+@inject IJSRuntime JS
 
 <div>
     <h3 class="text-xl font-semibold mb-4">Edit Event</h3>
 
-    @if (Vm.GetValidationMessages().Any())
-    {
-        <!-- Log Output -->
-        <div class="pt-4">
-            <div class="bg-gray-100 h-full border rounded font-mono text-sm whitespace-pre-wrap max-h-[300px] overflow-y-auto scroll-smooth">
-                @foreach (var line in Vm.MessageLogLines)
-                {
-                    <div class="@line.CssClass">@line.Text</div>
-                }
-            </div>
+    <!-- Log Output -->
+    <div class="pt-4">
+        <div class="bg-gray-100 h-full border rounded font-mono text-sm whitespace-pre-wrap max-h-[300px] overflow-y-auto scroll-smooth">
+            @foreach (var line in Vm.MessageLogLines)
+            {
+                <div class="@line.CssClass">@line.Text</div>
+            }
         </div>
-    }
+    </div>
 </div>
 
 <div class="bg-brand-gold rounded">
@@ -39,7 +40,7 @@
 
             <div>
                 <label class="block font-medium">Spreadsheet ID</label>
-                <input class="input-field w-full" @bind="Vm.Event.SpreadSheetId" />
+                <input class="input-field w-full" @bind="Vm.Event.SpreadsheetId" />
             </div>
 
             <div class="flex justify-center">
@@ -48,10 +49,15 @@
             </div>
 
             <div class="flex justify-center p-2">
-                <button class="btn btn-secondary w-64" @onclick="Vm.Cancel">Cancel</button>
+                <button class="btn btn-secondary w-64" @onclick="Vm.CancelAsync">Cancel</button>
             </div>
             <div class="flex justify-center p-2">
-                <button class="btn btn-primary w-64" @onclick="Vm.Save">Save</button>
+                <button 
+                    class="btn btn-primary w-64"
+                    @onclick="Vm.SaveAsync"
+                        disabled="@(Vm.HasUnsavedChanges == false)">
+                    Save
+                </button>
             </div>
         </div>
 

@@ -1,0 +1,28 @@
+﻿@using RegistrationSummary.Blazor.Services
+
+@inject ToastService ToastService
+
+@if (ToastService.CurrentMessage is not null)
+{
+    <div class="fixed top-4 right-4 z-50 bg-green-600 text-white px-4 py-2 rounded shadow transition-opacity duration-300"
+         style="opacity:@(ToastService.Visible ? "1" : "0")">
+        @ToastService.CurrentMessage
+    </div>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        ToastService.OnChange += OnToastChanged;
+    }
+
+    private async void OnToastChanged()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        ToastService.OnChange -= OnToastChanged;
+    }
+}

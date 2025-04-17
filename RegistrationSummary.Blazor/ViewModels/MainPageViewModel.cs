@@ -126,7 +126,7 @@ public class MainPageViewModel : ViewModelBase
             AddLog($"Checking spreadsheet for event: {SelectedEvent.Name}");
 
             var spreadsheet = _googleSheetsService
-                .Spreadsheets.Get(SelectedEvent.SpreadSheetId)
+                .Spreadsheets.Get(SelectedEvent.SpreadsheetId)
                 .Execute();
 
             if (spreadsheet.Sheets.Count > 1)
@@ -255,7 +255,7 @@ public class MainPageViewModel : ViewModelBase
         try
         {
             var spreadsheet = _googleSheetsService.Spreadsheets
-                .Get(SelectedEvent?.SpreadSheetId)
+                .Get(SelectedEvent?.SpreadsheetId)
                 .Execute();
 
             CanPopulateNewSignups = spreadsheet.Sheets

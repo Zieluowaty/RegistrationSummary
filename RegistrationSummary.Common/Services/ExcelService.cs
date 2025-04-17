@@ -15,7 +15,7 @@ public class ExcelService
     public readonly int ROW_STARTING_INDEX = 6;
 
     public SheetsService SheetService;
-    public string SpreadSheetId => SelectedEvent?.SpreadSheetId ?? string.Empty;
+    public string SpreadSheetId => SelectedEvent?.SpreadsheetId ?? string.Empty;
     public Event? SelectedEvent;
 
     public string SummaryTabName = string.Empty;
@@ -60,7 +60,7 @@ public class ExcelService
             if (_columnNameForInstallmentsSum == null)
             {
                 var request = SheetService.Spreadsheets.Values.Get(
-                    SelectedEvent?.SpreadSheetId,
+                    SelectedEvent?.SpreadsheetId,
                     $"{SummaryTabName}!E1"
                 );
                 var value = request.Execute().Values[0][0].ToString();
@@ -192,14 +192,14 @@ public class ExcelService
 	public void PopulateRegistrationTabForAggregatedData()
 	{
 		var request = SheetService.Spreadsheets.Values.Get(
-			SelectedEvent?.SpreadSheetId,
+			SelectedEvent?.SpreadsheetId,
 			$"{_rawDataTabName}!A2:O"
 		);
 			
 		var rawValues = request.Execute().Values;
 
 		request = SheetService.Spreadsheets.Values.Get(
-			SelectedEvent?.SpreadSheetId,
+			SelectedEvent?.SpreadsheetId,
 			$"{_preprocessedDataTabName}!A2:O"
 		);
 
@@ -687,7 +687,7 @@ public class ExcelService
 	public List<Student> GetStudentsFromRegularSemestersSheet()
 	{
 		var request = SheetService.Spreadsheets.Values.Get(
-			SelectedEvent?.SpreadSheetId,
+			SelectedEvent?.SpreadsheetId,
 			$"{SummaryTabName}!A{ROW_STARTING_INDEX}:BZ"
 		);
 		var values = request.Execute().Values;
@@ -836,7 +836,7 @@ public class ExcelService
 	private void GetAdditionalCommentaryForEmail(List<Student> students)
 	{
 		var request = SheetService.Spreadsheets.Values.Get(
-			SelectedEvent?.SpreadSheetId,
+			SelectedEvent?.SpreadsheetId,
 			$"{_preprocessedDataTabName}!A{2}:BZ"
 		);
 
@@ -912,7 +912,7 @@ public class ExcelService
 	private List<(string CourseCode, string ColumnName)> GetColumnsForCoursesInSummaryTab()
 	{
 		var request = SheetService.Spreadsheets.Values.Get(
-			SelectedEvent?.SpreadSheetId,
+			SelectedEvent?.SpreadsheetId,
 			$"{SummaryTabName}!B{ROW_STARTING_INDEX - 2}:AZ{ROW_STARTING_INDEX - 2}"
 		);
 
@@ -941,7 +941,7 @@ public class ExcelService
 	private List<(string Header, string ColumnName)> GetColumnsHeadersInSummaryTab()
 	{
 		var request = SheetService.Spreadsheets.Values.Get(
-			SelectedEvent?.SpreadSheetId,
+			SelectedEvent?.SpreadsheetId,
 			$"{SummaryTabName}!B{ROW_STARTING_INDEX - 1}:BZ{ROW_STARTING_INDEX - 1}"
 		);
 
@@ -982,7 +982,7 @@ public class ExcelService
     private List<(string Header, string ColumnName)> GetColumnsHeadersInTab(string tabName, int startingRowIndex = 1)
     {
         var request = SheetService.Spreadsheets.Values.Get(
-            SelectedEvent?.SpreadSheetId,
+            SelectedEvent?.SpreadsheetId,
             $"{tabName}!A{startingRowIndex}:BZ{startingRowIndex}"
         );
 
@@ -1402,7 +1402,7 @@ public class ExcelService
 			Values = new List<IList<object>> { new List<object> { $"{DateTime.Today.ToString("dd.MM.yyyy")}" } }
 		};
 
-		var updateRequest = SheetService.Spreadsheets.Values.Update(range, SelectedEvent?.SpreadSheetId, range.Range);
+		var updateRequest = SheetService.Spreadsheets.Values.Update(range, SelectedEvent?.SpreadsheetId, range.Range);
 		updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
 
 		var updateResponse = updateRequest.Execute();
@@ -1478,7 +1478,7 @@ public class ExcelService
 	public int? GetSheetIdForCurrentEvent(string sheetName)
 		=> SheetService
 			.Spreadsheets
-			.Get(SelectedEvent?.SpreadSheetId)
+			.Get(SelectedEvent?.SpreadsheetId)
 			.Execute()
 			.Sheets
 			.SingleOrDefault(sheet => sheet.Properties.Title.Equals(sheetName))?

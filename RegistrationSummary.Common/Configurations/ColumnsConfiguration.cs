@@ -53,4 +53,20 @@ public class ColumnsConfiguration : ObservableValidator
     }
 
     public void Validate() => ValidateAllProperties();
+
+    public bool Equals(ColumnsConfiguration? other)
+    {
+        if (other is null) return false;
+
+        return DateTime == other.DateTime &&
+                FirstName == other.FirstName &&
+                LastName == other.LastName &&
+                Email == other.Email &&
+                Accepted == other.Accepted;
+    }
+
+    public override bool Equals(object? obj) => Equals(obj as ColumnsConfiguration);
+
+    public override int GetHashCode() =>
+        HashCode.Combine(DateTime, FirstName, LastName, Email, Accepted);
 }

@@ -16,7 +16,7 @@ public class Event
     public EventType EventType { get; set; }
 	public bool CoursesAreMerged { get; set; }
 	[Required(ErrorMessage = "Spreadsheet ID needs to be provided.")]
-	public string SpreadSheetId { get; set; }
+	public string SpreadsheetId { get; set; }
 	public ColumnsConfiguration RawDataColumns { get; set; }
 	public ColumnsConfiguration PreprocessedColumns { get; set; }
 
@@ -32,7 +32,7 @@ public class Event
 		StartDate = startDate ?? DateTime.Now;
 		EventType = eventType;
 		CoursesAreMerged = coursesAreMerged;
-		SpreadSheetId = spreadSheetId;
+		SpreadsheetId = spreadSheetId;
 		RawDataColumns = rawDataColumns;
 		PreprocessedColumns = preprocessedColumns;
 		Courses = courses;
@@ -49,6 +49,25 @@ public class Event
 		var clonedRawDataColumns = RawDataColumns.Clone();
 		var clonedPreprocessedColumns = PreprocessedColumns.Clone();
 
-		return new Event(0, Name, StartDate, EventType, CoursesAreMerged, SpreadSheetId, clonedRawDataColumns, clonedPreprocessedColumns, clonedCourses);
+		return new Event(0, Name, StartDate, EventType, CoursesAreMerged, SpreadsheetId, clonedRawDataColumns, clonedPreprocessedColumns, clonedCourses);
 	}
+    public bool Equals(Event? other)
+    {
+        if (other is null) return false;
+
+        return Name == other.Name &&
+               SpreadsheetId == other.SpreadsheetId &&
+               StartDate == other.StartDate &&
+               CoursesAreMerged == other.CoursesAreMerged &&
+               RawDataColumns.Equals(other.RawDataColumns) &&
+               PreprocessedColumns.Equals(other.PreprocessedColumns) &&
+               Courses.SequenceEqual(other.Courses);
+    }
+
+    public override bool Equals(object? obj) => Equals(obj as Event);
+
+    public override int GetHashCode() =>
+        HashCode.Combine(Name, SpreadsheetId, StartDate, CoursesAreMerged,
+                         RawDataColumns, PreprocessedColumns,
+                         Courses.Aggregate(0, (a, c) => HashCode.Combine(a, c.GetHashCode())));
 }

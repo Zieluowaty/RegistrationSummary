@@ -7,6 +7,7 @@ using Google.Apis.Sheets.v4;
 using System.Text.Json;
 using RegistrationSummary.Blazor.ViewModels;
 using RegistrationSummary.Common.Services;
+using RegistrationSummary.Blazor.Services;
 
 // 1. Inicjalizacja buildera
 var builder = WebApplication.CreateBuilder(args);
@@ -65,6 +66,8 @@ builder.Services.AddSingleton<MailerService>();
 builder.Services.AddSingleton<FileLoggerService>();
 builder.Services.AddSingleton<MainPageViewModel>();
 builder.Services.AddTransient<EventModificationPageViewModel>();
+
+builder.Services.AddSingleton<ToastService>();
 
 // 7. Blazor i routing
 builder.Services.AddRazorPages();

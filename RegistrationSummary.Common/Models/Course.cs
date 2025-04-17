@@ -1,4 +1,5 @@
 using RegistrationSummary.Common.Enums;
+using System.Xml.Linq;
 
 
 namespace RegistrationSummary.Common.Models;
@@ -51,4 +52,34 @@ public class Course
     {
         return new Course(Name, Code, Start, End, DayOfWeek, Time, Location, AdditionalComment, IsSolo, IsShorter, Role.HasValue ? Role.Value : default(Role));
     }
+
+    public bool Equals(Course? other)
+    {
+        if (other is null) return false;
+
+        return Id == other.Id &&
+               Type == other.Type &&
+               Name == other.Name &&
+               Code == other.Code &&
+               Start == other.Start &&
+               End == other.End &&
+               DayOfWeek == other.DayOfWeek &&
+               Time == other.Time &&
+               Location == other.Location &&
+               AdditionalComment == other.AdditionalComment &&
+               IsSolo == other.IsSolo &&
+               IsShorter == other.IsShorter &&
+               Role == other.Role &&
+               Status == other.Status &&
+               EmailCommentary == other.EmailCommentary &&
+               IsOddRow == other.IsOddRow;
+    }
+
+    public override bool Equals(object? obj) => Equals(obj as Course);
+
+    public override int GetHashCode() =>
+        HashCode.Combine(
+            HashCode.Combine(Id, Type, Name, Code, Start, End, DayOfWeek, Time),
+            HashCode.Combine(Location, AdditionalComment, IsSolo, IsShorter, Role, Status, EmailCommentary, IsOddRow)
+    );
 }
