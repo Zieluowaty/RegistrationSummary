@@ -1,13 +1,10 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using Google.Apis.Sheets.v4;
-using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Options;
 using RegistrationSummary.Common.Enums;
 using RegistrationSummary.Common.Models;
 using RegistrationSummary.Common.Services;
+
 using LogLevel = RegistrationSummary.Common.Enums.LogLevel;
 
 namespace RegistrationSummary.Blazor.ViewModels;
@@ -20,8 +17,7 @@ public class MainPageViewModel : ViewModelBase
     private readonly SheetsService _googleSheetsService;
     private readonly Settings _settings;
 
-    private readonly ILogger<MainPageViewModel> _logger;
-    private readonly FileLoggerService _fileLogger;
+    
 
     public ObservableCollection<Event> Events { get; private set; } = new();
 
@@ -55,40 +51,21 @@ public class MainPageViewModel : ViewModelBase
         }
     }
 
-    private List<LogEntry> _logLines = new();
-    public IReadOnlyList<LogEntry> MessageLogLines => _logLines;
-
-    private string _messageLog = string.Empty;
-    public string MessageLog
-    {
-        get => _messageLog;
-        set
-        {
-            if (_messageLog != value)
-            {
-                _messageLog = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
     public MainPageViewModel(
         EventService eventService,
         ExcelService excelService,
         SheetsService googleSheetsService,
         MailerService mailerService,
         Settings settings,
-        FileLoggerService fileLogger,
+        FileLoggerService fileLoggerService,
         ILogger<MainPageViewModel> logger)
+        : base (logger, fileLoggerService)  
     {
         _eventService = eventService;
         _excelService = excelService;
         _googleSheetsService = googleSheetsService;
         _mailerService = mailerService;
         _settings = settings;
-
-        _fileLogger = fileLogger;
-        _logger = logger;
 
         LoadEvents();
     }
@@ -206,7 +183,7 @@ public class MainPageViewModel : ViewModelBase
         }
     }
 
-    public async Task SendEmailsAsync(EmailType? type = null, bool isTest = false)
+    public async Task SendEmailsAsync(EmailType type, bool isTest = false)
     {
         if (SelectedEvent == null)
         {
@@ -227,16 +204,16 @@ public class MainPageViewModel : ViewModelBase
 
             AddLog($"Loaded {students.Count} students. Sending...");
 
-            if (type.HasValue)
+            if (type == EmailType.All)
             {
-                await Task.Run(() => _mailerService.SendEmailsOfType(students, type.Value, isTest));
-                AddLog($"Emails of type {type} sent.");
+                await Task.Run(() => _mailerService.PrepareAndSendEmailsForRegularSemesters(students, isTest));
             }
             else
             {
-                await Task.Run(() => _mailerService.PrepareAndSendEmailsForRegularSemesters(students, isTest));
-                AddLog("All emails sent.");
+                await Task.Run(() => _mailerService.SendEmailsOfType(students, type, isTest));
             }
+
+            AddLog($"{type} emails sent.");
         }
         catch (Exception ex)
         {
@@ -289,34 +266,6 @@ public class MainPageViewModel : ViewModelBase
             AddLog("Could not verify preprocessed tab existence.", ex, LogLevel.Error, MethodBase.GetCurrentMethod().Name);
             CanPopulateNewSignups = false;
         }
-    }
-
-    private void AddLog(string message, Exception? ex = null, LogLevel level = LogLevel.Info, string methodName = "")
-    {
-        var colorClass = level switch
-        {
-            LogLevel.Info => "log-info",
-            LogLevel.Warning => "log-warning",
-            LogLevel.Error => "log-error",
-            _ => "log-info"
-        };
-
-        var formatted = $"[{DateTime.Now:HH:mm:ss}] {message}";
-
-        _logLines.Insert(0, new LogEntry
-        {
-            Text = formatted,
-            CssClass = colorClass,
-            Level = level
-        });
-
-        if (level > LogLevel.Warning && ex != null)
-        {
-            _logger.LogError(ex, $"{level} during {methodName}");
-            _fileLogger.LogError(ex, $"{level} during {methodName}");
-        }
-
-        OnPropertyChanged(nameof(MessageLogLines));
     }
 
     private static readonly Dictionary<string, int> DayOrder = new()

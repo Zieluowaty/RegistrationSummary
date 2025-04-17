@@ -2,7 +2,11 @@
 using Microsoft.JSInterop;
 using RegistrationSummary.Blazor.ViewModels.Helpers;
 using RegistrationSummary.Common.Models;
+using RegistrationSummary.Common.Services;
+using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
+
+using LogLevel = RegistrationSummary.Common.Enums.LogLevel;
 
 namespace RegistrationSummary.Blazor.ViewModels;
 
@@ -14,6 +18,9 @@ public class EventModificationPageViewModel : ViewModelBase
     private readonly IJSRuntime _jsRuntime;
 
     public Event? Event { get; private set; }
+
+    private ValidationContext _validationContext;
+    private readonly List<ValidationResult> _validationResults = new();
 
     public List<ColumnBinding> RawColumnBindings => new()
     {
@@ -46,7 +53,10 @@ public class EventModificationPageViewModel : ViewModelBase
     public EventModificationPageViewModel(
         MainPageViewModel mainVm,
         NavigationManager nav,
-        IJSRuntime jsRuntime)
+        IJSRuntime jsRuntime,
+        FileLoggerService fileLoggerService,
+        ILogger<MainPageViewModel> logger)
+        : base(logger, fileLoggerService)
     {
         _mainVm = mainVm;
         _nav = nav;
@@ -56,6 +66,8 @@ public class EventModificationPageViewModel : ViewModelBase
         {
             Event = _mainVm.SelectedEvent.Clone();
         }
+
+        _validationContext = new ValidationContext(Event);
     }
 
     public async Task AddCourse()
@@ -79,7 +91,15 @@ public class EventModificationPageViewModel : ViewModelBase
             return;
         }
 
-        // Skopiuj dane z klona do wybranego eventu
+        if (!Validate())
+        {
+            ClearLog();
+
+            foreach (var msg in GetValidationMessages())
+                AddLog(msg, null, LogLevel.Warning);
+            return;
+        }
+
         _mainVm.SelectedEvent.Name = Event.Name;
         _mainVm.SelectedEvent.StartDate = Event.StartDate;
         _mainVm.SelectedEvent.SpreadSheetId = Event.SpreadSheetId;
@@ -98,20 +118,29 @@ public class EventModificationPageViewModel : ViewModelBase
         _nav.NavigateTo("/");
     }
 
+    private bool Validate()
+    {
+        _validationResults.Clear();
+        return Validator.TryValidateObject(Event, _validationContext, _validationResults, true);
+    }
+
+    public IEnumerable<string> GetValidationMessages()
+    => _validationResults.Select(r => r.ErrorMessage ?? "Nieznany błąd");
+
     public bool ValidateColumns()
     {
         var allCols = new[]
         {
-        Event?.RawDataColumns?.Login, Event?.RawDataColumns?.Email, Event?.RawDataColumns?.FirstName,
-        Event?.RawDataColumns?.LastName, Event?.RawDataColumns?.PhoneNumber, Event?.RawDataColumns?.Course,
-        Event?.RawDataColumns?.Role, Event?.RawDataColumns?.Partner, Event?.RawDataColumns?.Installment,
-        Event?.RawDataColumns?.Accepted,
+            Event?.RawDataColumns?.Login, Event?.RawDataColumns?.Email, Event?.RawDataColumns?.FirstName,
+            Event?.RawDataColumns?.LastName, Event?.RawDataColumns?.PhoneNumber, Event?.RawDataColumns?.Course,
+            Event?.RawDataColumns?.Role, Event?.RawDataColumns?.Partner, Event?.RawDataColumns?.Installment,
+            Event?.RawDataColumns?.Accepted,
 
-        Event?.PreprocessedColumns?.Login, Event?.PreprocessedColumns?.Email, Event?.PreprocessedColumns?.FirstName,
-        Event?.PreprocessedColumns?.LastName, Event?.PreprocessedColumns?.PhoneNumber, Event?.PreprocessedColumns?.Course,
-        Event?.PreprocessedColumns?.Role, Event?.PreprocessedColumns?.Partner, Event?.PreprocessedColumns?.Installment,
-        Event?.PreprocessedColumns?.Accepted
-    };
+            Event?.PreprocessedColumns?.Login, Event?.PreprocessedColumns?.Email, Event?.PreprocessedColumns?.FirstName,
+            Event?.PreprocessedColumns?.LastName, Event?.PreprocessedColumns?.PhoneNumber, Event?.PreprocessedColumns?.Course,
+            Event?.PreprocessedColumns?.Role, Event?.PreprocessedColumns?.Partner, Event?.PreprocessedColumns?.Installment,
+            Event?.PreprocessedColumns?.Accepted
+        };
 
         var invalid = allCols.Where(c => !IsValidColumn(c)).ToList();
 

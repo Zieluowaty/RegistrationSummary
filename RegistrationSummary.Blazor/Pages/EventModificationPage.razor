@@ -3,7 +3,22 @@
 @using RegistrationSummary.Blazor.ViewModels
 @inject EventModificationPageViewModel Vm
 
-<h3 class="text-xl font-semibold mb-4">Edit Event</h3>
+<div>
+    <h3 class="text-xl font-semibold mb-4">Edit Event</h3>
+
+    @if (Vm.GetValidationMessages().Any())
+    {
+        <!-- Log Output -->
+        <div class="pt-4">
+            <div class="bg-gray-100 h-full border rounded font-mono text-sm whitespace-pre-wrap max-h-[300px] overflow-y-auto scroll-smooth">
+                @foreach (var line in Vm.MessageLogLines)
+                {
+                    <div class="@line.CssClass">@line.Text</div>
+                }
+            </div>
+        </div>
+    }
+</div>
 
 <div class="bg-brand-gold rounded">
 

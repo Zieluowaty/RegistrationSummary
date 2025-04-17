@@ -1,5 +1,6 @@
 using RegistrationSummary.Common.Configurations;
 using RegistrationSummary.Common.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace RegistrationSummary.Common.Models;
@@ -7,10 +8,14 @@ namespace RegistrationSummary.Common.Models;
 public class Event
 {
 	public int Id { get; set; }
-	public string Name { get; set; }
+
+    [Required(ErrorMessage = "The event name is required.")]
+    [StringLength(100, MinimumLength = 10, ErrorMessage = "The event name has to have 10 to 100 characters.")]
+    public string Name { get; set; }
 	public DateTime StartDate { get; set; }
-	public EventType EventType { get; set; }
+    public EventType EventType { get; set; }
 	public bool CoursesAreMerged { get; set; }
+	[Required(ErrorMessage = "Spreadsheet ID needs to be provided.")]
 	public string SpreadSheetId { get; set; }
 	public ColumnsConfiguration RawDataColumns { get; set; }
 	public ColumnsConfiguration PreprocessedColumns { get; set; }

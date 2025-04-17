@@ -5,7 +5,7 @@ namespace RegistrationSummary.Common.Configurations;
 
 public class ColumnsConfiguration : ObservableValidator
 {
-	public string DateTime { get; set; }
+    public string DateTime { get; set; }
     [Required]
     [StringLength(2, ErrorMessage = "{0} length must be between {2} and {1}.", MinimumLength = 1)]
     public string Email { get; set; }

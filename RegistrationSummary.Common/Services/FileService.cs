@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using RegistrationSummary.Common.Models;
 using System.Reflection;
-using System.Text;
 using System.Text.Json;
 
 public class FileService
