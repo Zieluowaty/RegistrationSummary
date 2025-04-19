@@ -40,6 +40,25 @@ else
                         <option value="@ev.Name">@ev.Name</option>
                     }
                 </select>
+
+                <div class="flex gap-2 mt-2">
+                    <button class="btn btn-sm btn-primary"
+                            disabled="@(!Vm.CanEditSelected)"
+                            @onclick="@(() => Navigation.NavigateTo($"/event/edit/{Vm.SelectedEvent.Id}"))">
+                        ✏️ Edit
+                    </button>
+
+                    <button class="btn btn-sm btn-secondary"
+                            @onclick="@(() => Navigation.NavigateTo("/event/new"))">
+                        ➕ Add
+                    </button>
+
+                    <button class="btn btn-sm btn-accent"
+                            disabled="@(!Vm.CanEditSelected)"
+                            @onclick="Vm.CloneSelectedEventAsync">
+                        🌀 Clone
+                    </button>
+                </div>
             </div>
 
             @if (Vm.SelectedEvent is not null)
@@ -80,17 +99,6 @@ else
                 <div class="flex flex-wrap gap-6 border p-4 rounded bg-gray-100 text-sm">
                     <div><strong>Name:</strong> @Vm.SelectedEvent.Name</div>
                     <div><strong>Start Date:</strong> @Vm.SelectedEvent.StartDate.ToShortDateString()</div>
-
-                    <button 
-                        class="btn btn-secondary" 
-                        @onclick="@(() => Navigation.NavigateTo("/event/new"))">
-                        ➕ Add New Event
-                    </button>
-                    <button 
-                        class="btn btn-sm btn-primary"
-                        @onclick="@(() => Navigation.NavigateTo($"/event/edit/{Vm.SelectedEvent.Id}"))">
-                        ✏️ Edit
-                    </button>
                 </div>
 
                 <!-- Courses Table -->

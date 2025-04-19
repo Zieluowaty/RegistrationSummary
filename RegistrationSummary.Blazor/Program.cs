@@ -64,7 +64,9 @@ builder.Services.AddSingleton<EventService>();
 builder.Services.AddSingleton<ExcelService>();
 builder.Services.AddSingleton<MailerService>();
 builder.Services.AddSingleton<FileLoggerService>();
-builder.Services.AddSingleton<MainPageViewModel>();
+
+// 6.1 Rejestracja ViewModeli
+builder.Services.AddScoped<MainPageViewModel>();
 builder.Services.AddTransient<EventModificationPageViewModel>();
 
 builder.Services.AddSingleton<ToastService>();

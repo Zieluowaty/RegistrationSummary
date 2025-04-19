@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reflection;
 using Google.Apis.Sheets.v4;
+using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using RegistrationSummary.Common.Enums;
 using RegistrationSummary.Common.Models;
 using RegistrationSummary.Common.Services;
@@ -15,11 +17,11 @@ public class MainPageViewModel : ViewModelBase
     private readonly ExcelService _excelService;
     private readonly MailerService _mailerService;
     private readonly SheetsService _googleSheetsService;
-    private readonly Settings _settings;
-
     
-
+    private readonly Settings _settings;
+    
     public ObservableCollection<Event> Events { get; private set; } = new();
+    public bool CanEditSelected => SelectedEvent is not null;
 
     private Event? _selectedEvent;
     public Event? SelectedEvent
@@ -58,8 +60,10 @@ public class MainPageViewModel : ViewModelBase
         MailerService mailerService,
         Settings settings,
         FileLoggerService fileLoggerService,
-        ILogger<MainPageViewModel> logger)
-        : base (logger, fileLoggerService)  
+        ILogger<MainPageViewModel> logger,
+        IJSRuntime jsRuntime,
+        NavigationManager navigationManager)
+        : base (logger, fileLoggerService, jsRuntime, navigationManager)  
     {
         _eventService = eventService;
         _excelService = excelService;
@@ -78,6 +82,32 @@ public class MainPageViewModel : ViewModelBase
             Events.Add(ev);
         }
     }
+
+    public async Task CloneSelectedEventAsync()
+    {
+        if (SelectedEvent is null)
+            return;
+
+        var confirmed = await ConfirmAsync($"Do you want to clone event \"{SelectedEvent.Name}\"?");
+        if (!confirmed)
+            return;
+
+        var clone = SelectedEvent.Clone();
+        clone.Id = _eventService.GenerateNextId();
+        clone.Name += " (CLONE)";
+
+        Events.Add(clone);
+        SelectedEvent = clone;
+
+        _eventService.SaveAll(Events.ToList());
+
+        AddLog($"Event cloned: {clone.Name}", null, LogLevel.Info);
+
+        NavigateTo($"/event/edit/{clone.Id}");
+    }
+
+
+
     public void OnEventModified()
     {
         // Wymuś odświeżenie powiązanych właściwości
@@ -88,7 +118,6 @@ public class MainPageViewModel : ViewModelBase
 
         _eventService.SaveAll(Events.ToList());
     }
-
 
     public void SelectEvent(string eventName)
     {

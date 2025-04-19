@@ -16,12 +16,10 @@ namespace RegistrationSummary.Blazor.ViewModels;
 
 public class EventModificationPageViewModel : ViewModelBase
 {
-    private readonly NavigationManager _nav;
     private readonly MainPageViewModel _mainVm; 
     private readonly SheetsService _sheetsService;
     private readonly EventService _eventService;
 
-    private readonly IJSRuntime _jsRuntime;
     private readonly ToastService _toastService;
 
     public Event? Event { get; private set; }
@@ -63,21 +61,19 @@ public class EventModificationPageViewModel : ViewModelBase
 
     public EventModificationPageViewModel(
         MainPageViewModel mainVm,
-        NavigationManager nav,
+        NavigationManager navigationManager,
         SheetsService sheetsService,
         EventService eventService,
         IJSRuntime jsRuntime,
         ToastService toastService,
         FileLoggerService fileLoggerService,
         ILogger<MainPageViewModel> logger)
-        : base(logger, fileLoggerService)
+        : base(logger, fileLoggerService, jsRuntime, navigationManager)
     {
         _mainVm = mainVm;
         _sheetsService = sheetsService;
         _eventService = eventService;
 
-        _nav = nav;
-        _jsRuntime = jsRuntime;
         _toastService = toastService;
     }
 
@@ -105,7 +101,7 @@ public class EventModificationPageViewModel : ViewModelBase
         if (found is null)
         {
             _toastService.Show("Failed to load the event.");
-            _nav.NavigateTo("/");
+            NavigateTo("/");
             return;
         }
 
@@ -117,7 +113,7 @@ public class EventModificationPageViewModel : ViewModelBase
 
     public async Task AddCourse()
     {
-        var confirm = await _jsRuntime.InvokeAsync<bool>("confirm", "Do you want to add a new course?");
+        var confirm = await ConfirmAsync("Do you want to add a new course?");
         if (!confirm)
             return;
 
@@ -157,7 +153,7 @@ public class EventModificationPageViewModel : ViewModelBase
 
         _mainVm.OnEventModified();
         _toastService.Show("Event saved successfully!");
-        _nav.NavigateTo("/");
+        NavigateTo("/");
     }
 
 
@@ -197,12 +193,12 @@ public class EventModificationPageViewModel : ViewModelBase
     {
         if (HasUnsavedChanges)
         {
-            var confirm = await _jsRuntime.InvokeAsync<bool>("confirm", "You have unsaved changes. Do you want to discard them?");
+            var confirm = await ConfirmAsync("You have unsaved changes. Do you want to discard them?");
             if (!confirm)
                 return;
         }
 
-        _nav.NavigateTo("/");
+        NavigateTo("/");
     }
 
     private bool Validate()
