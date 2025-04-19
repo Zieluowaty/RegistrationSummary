@@ -80,8 +80,16 @@ else
                 <div class="flex flex-wrap gap-6 border p-4 rounded bg-gray-100 text-sm">
                     <div><strong>Name:</strong> @Vm.SelectedEvent.Name</div>
                     <div><strong>Start Date:</strong> @Vm.SelectedEvent.StartDate.ToShortDateString()</div>
-                    <button class="btn btn-sm btn-primary" @onclick="@(() => Navigation.NavigateTo("/event/edit"))">
-                        ✏️ Edit Event
+
+                    <button 
+                        class="btn btn-secondary" 
+                        @onclick="@(() => Navigation.NavigateTo("/event/new"))">
+                        ➕ Add New Event
+                    </button>
+                    <button 
+                        class="btn btn-sm btn-primary"
+                        @onclick="@(() => Navigation.NavigateTo($"/event/edit/{Vm.SelectedEvent.Id}"))">
+                        ✏️ Edit
                     </button>
                 </div>
 

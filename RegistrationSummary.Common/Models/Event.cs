@@ -12,7 +12,7 @@ public class Event
     [Required(ErrorMessage = "The event name is required.")]
     [StringLength(100, MinimumLength = 10, ErrorMessage = "The event name has to have 10 to 100 characters.")]
     public string Name { get; set; }
-	public DateTime StartDate { get; set; }
+	public DateOnly StartDate { get; set; }
     public EventType EventType { get; set; }
 	public bool CoursesAreMerged { get; set; }
 	[Required(ErrorMessage = "Spreadsheet ID needs to be provided.")]
@@ -25,11 +25,11 @@ public class Event
 
 	public Event() { }
 
-	public Event(int id, string name, DateTime? startDate, EventType eventType, bool coursesAreMerged, string spreadSheetId, ColumnsConfiguration rawDataColumns, ColumnsConfiguration preprocessedColumns, List<Course> courses)
+	public Event(int id, string name, DateOnly? startDate, EventType eventType, bool coursesAreMerged, string spreadSheetId, ColumnsConfiguration rawDataColumns, ColumnsConfiguration preprocessedColumns, List<Course> courses)
 	{
 		Id = id;
 		Name = name;
-		StartDate = startDate ?? DateTime.Now;
+		StartDate = startDate ?? DateOnly.FromDateTime(DateTime.Now);
 		EventType = eventType;
 		CoursesAreMerged = coursesAreMerged;
 		SpreadsheetId = spreadSheetId;

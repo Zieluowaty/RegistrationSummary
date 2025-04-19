@@ -19,6 +19,7 @@ public class EventModificationPageViewModel : ViewModelBase
     private readonly NavigationManager _nav;
     private readonly MainPageViewModel _mainVm; 
     private readonly SheetsService _sheetsService;
+    private readonly EventService _eventService;
 
     private readonly IJSRuntime _jsRuntime;
     private readonly ToastService _toastService;
@@ -64,6 +65,7 @@ public class EventModificationPageViewModel : ViewModelBase
         MainPageViewModel mainVm,
         NavigationManager nav,
         SheetsService sheetsService,
+        EventService eventService,
         IJSRuntime jsRuntime,
         ToastService toastService,
         FileLoggerService fileLoggerService,
@@ -72,15 +74,42 @@ public class EventModificationPageViewModel : ViewModelBase
     {
         _mainVm = mainVm;
         _sheetsService = sheetsService;
+        _eventService = eventService;
 
         _nav = nav;
         _jsRuntime = jsRuntime;
         _toastService = toastService;
+    }
 
-        Event = _mainVm.SelectedEvent is null
-            ? new Event()
-            : _mainVm.SelectedEvent.Clone();
+    public void Initialize(int? eventId)
+    {
+        if (eventId is null)
+        {
+            // new event
+            Event = new Event
+            {
+                Id = _eventService.GenerateNextId(),
+                Name = "",
+                Courses = new(),
+                RawDataColumns = new(),
+                PreprocessedColumns = new(),
+                StartDate = DateOnly.FromDateTime(DateTime.Now)
+            };
 
+            _initialEventSnapshot = Event.Clone();
+            return;
+        }
+
+        // editing existing
+        var found = _eventService.GetById(eventId.Value);
+        if (found is null)
+        {
+            _toastService.Show("Failed to load the event.");
+            _nav.NavigateTo("/");
+            return;
+        }
+
+        Event = found.Clone();
         _initialEventSnapshot = Event.Clone();
 
         _validationContext = new ValidationContext(Event);

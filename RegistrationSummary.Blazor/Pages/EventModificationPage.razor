@@ -1,4 +1,5 @@
-@page "/event/edit"
+@page "/event/edit/{EventId:int}"
+@page "/event/new"
 
 @using Microsoft.JSInterop
 @using RegistrationSummary.Blazor.ViewModels
@@ -6,6 +7,15 @@
 @inject EventModificationPageViewModel Vm
 
 @inject IJSRuntime JS
+
+@code {
+    [Parameter] public int? EventId { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Vm.Initialize(EventId);
+    }
+}
 
 <div>
     <h3 class="text-xl font-semibold mb-4">Edit Event</h3>
