@@ -107,16 +107,6 @@ public class EventModificationPageViewModel : ViewModelBase
         _validationContext = new ValidationContext(Event);
     }
 
-    public async Task AddCourse()
-    {
-        var confirm = await ConfirmAsync("Do you want to add a new course?");
-        if (!confirm)
-            return;
-
-        Event.Courses.Add(new Course());
-        OnPropertyChanged(nameof(Event));
-    }
-
     public async Task SaveAsync()
     {
         if (_mainVm.SelectedEvent == null || Event == null)
@@ -259,37 +249,29 @@ public class EventModificationPageViewModel : ViewModelBase
         OnPropertyChanged(nameof(Event));
     }
 
-    private bool EventEquals(Event? a, Event? b)
+    public async Task AddCourse()
     {
-        if (a is null || b is null) return false;
+        var confirm = await ConfirmAsync("Do you want to add a new course?");
+        if (!confirm)
+            return;
 
-        return a.Name == b.Name
-            && a.SpreadsheetId == b.SpreadsheetId
-            && a.StartDate == b.StartDate
-            && a.CoursesAreMerged == b.CoursesAreMerged
-            && CompareColumns(a.RawDataColumns, b.RawDataColumns)
-            && CompareColumns(a.PreprocessedColumns, b.PreprocessedColumns)
-            && CompareCourses(a.Courses, b.Courses);
+        Event.Courses.Add(new Course());
+        OnPropertyChanged(nameof(Event));
     }
 
-    private bool CompareColumns(ColumnsConfiguration a, ColumnsConfiguration b)
+    public async Task DeleteCourseAsync(Course course)
     {
-        return a.DateTime == b.DateTime
-            && a.Email == b.Email
-            && a.FirstName == b.FirstName
-            && a.LastName == b.LastName
-            && a.Accepted == b.Accepted;
-    }
+        if (course == null)
+            return;
 
-    private bool CompareCourses(List<Course> a, List<Course> b)
-    {
-        if (a.Count != b.Count) return false;
+        var confirm = await ConfirmAsync($"Are you sure you want to delete course \"{course.Name}\"?");
+        if (!confirm)
+            return;
 
-        for (int i = 0; i < a.Count; i++)
-        {
-            if (!a[i].Equals(b[i])) return false;
-        }
+        Event?.Courses.Remove(course);
+        OnPropertyChanged(nameof(Event));
 
-        return true;
+        ShowToast($"Course \"{course.Name}\" deleted");
+        AddLog($"Course \"{course.Name}\" deleted.", null, LogLevel.Info, nameof(DeleteCourseAsync));
     }
 }
