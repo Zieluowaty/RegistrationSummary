@@ -195,6 +195,10 @@ public class MainPageViewModel : ViewModelBase
         if (SelectedEvent == null || IsBusy)
             return;
 
+        var confirm = await ConfirmAsync("Are you sure you want to clear the spreadsheet data?\nThis action cannot be undone.");
+        if (!confirm)
+            return;
+
         await RunWithBusyIndicator(async () =>
         {
             try
@@ -204,14 +208,18 @@ public class MainPageViewModel : ViewModelBase
                 UpdateSignupEligibility();
 
                 AddLog("Excel cleared.");
+                ShowToast("Excel cleared");
             }
             catch (Exception ex)
             {
-                AddLog($"Error: [ClearExcelAsync] {ex.Message}", ex, LogLevel.Error, MethodBase.GetCurrentMethod()?.Name ?? "ClearExcelAsync");
+                AddLog(
+                    $"Error: [ClearExcelAsync] {ex.Message}", 
+                    ex, 
+                    LogLevel.Error, 
+                    MethodBase.GetCurrentMethod()?.Name ?? "ClearExcelAsync");
             }
         });
     }
-
 
     public async Task SendEmailsAsync(EmailType type, bool isTest = false)
     {
@@ -231,7 +239,7 @@ public class MainPageViewModel : ViewModelBase
                 if (!students.Any())
                 {
                     AddLog("No students found.");
-                    ShowToast("No students found.");
+                    ShowToast("No students found");
                     return;
                 }
 
@@ -247,7 +255,7 @@ public class MainPageViewModel : ViewModelBase
                     if (!summary.Any())
                     {
                         AddLog("No emails to send.");
-                        ShowToast("No emails to send.");
+                        ShowToast("No emails to send");
                         return;
                     }
                 }
@@ -256,8 +264,8 @@ public class MainPageViewModel : ViewModelBase
                     var count = _mailerService.GetPendingRecipientsOfType(students, type).Count;
                     if (count == 0)
                     {
-                        ShowToast($"No '{type}' emails to send.");
                         AddLog($"No '{type}' emails to send.");
+                        ShowToast($"No '{type}' emails to send");
                         return;
                     }
 
@@ -274,22 +282,22 @@ public class MainPageViewModel : ViewModelBase
                 var confirm = await ConfirmAsync(sb.ToString());
                 if (!confirm)
                 {
-                    ShowToast("Sending canceled by user.");
                     AddLog("Sending canceled by user.");
+                    ShowToast("Sending canceled by user");
                     return;
                 }
 
                 if (type == EmailType.All)
                 {
                     await Task.Run(() => _mailerService.PrepareAndSendEmailsForRegularSemesters(students, isTest, msg => AddLog(msg)));
-                    ShowToast("Sending emails ended.");
                     AddLog("Sending emails ended.");
+                    ShowToast("Sending emails ended");
                 }
                 else
                 {
                     await Task.Run(() => _mailerService.SendEmailsOfType(students, type, isTest, msg => AddLog(msg)));
-                    ShowToast($"Sending {type} emails ended.");
                     AddLog($"Sending {type} emails ended.");
+                    ShowToast($"Sending {type} emails ended");
                 }
             }
             catch (Exception ex)
@@ -310,6 +318,7 @@ public class MainPageViewModel : ViewModelBase
         if (!CanPopulateNewSignups)
         {
             AddLog("Cannot populate new signups – required tab does not exist.");
+            ShowToast("Cannot populate new signups");
             return;
         }
 
@@ -319,11 +328,16 @@ public class MainPageViewModel : ViewModelBase
             {
                 AddLog("Searching for new registrations...");
                 await Task.Run(() => _excelService.PopulateRegistrationTabForAggregatedData());
-                AddLog("New signups populated successfully.");
+                AddLog("New signups populated successfully. It can take few seconds for Google Sheet to reload. Be patient.");
+                ShowToast("New signups populated successfully.");
             }
             catch (Exception ex)
             {
-                AddLog($"Error while populating new signups: {ex.Message}", ex, LogLevel.Error, MethodBase.GetCurrentMethod()?.Name ?? "PopulateNewSignupsAsync");
+                AddLog(
+                    $"Error while populating new signups: {ex.Message}", 
+                    ex, 
+                    LogLevel.Error, 
+                    MethodBase.GetCurrentMethod()?.Name ?? "PopulateNewSignupsAsync");
             }
         });
     }

@@ -83,6 +83,7 @@ public class ViewModelBase : INotifyPropertyChanged
         {
             _logger.LogError(ex, $"{level} during {methodName}");
             _fileLogger.LogError(ex, $"{level} during {methodName}");
+            ShowToast($"Error occured, check the logs");
         }
 
         OnPropertyChanged(nameof(MessageLogLines));

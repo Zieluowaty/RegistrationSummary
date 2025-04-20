@@ -80,7 +80,7 @@ else
                         @foreach (var type in Enum.GetValues<EmailType>())
                         {
                             <button class="btn btn-primary btn-sm w-full text-left" @onclick="() => Vm.SendEmailsAsync(type)">
-                                Send @type
+                                💌 Send @type
                             </button>
                         }
                     </div>
@@ -91,7 +91,7 @@ else
                         @foreach (var type in Enum.GetValues<EmailType>())
                         {
                             <button class="btn btn-secondary btn-sm w-full text-left" @onclick="() => Vm.SendEmailsAsync(type, true)">
-                                Send @type (test)
+                                💡 Send @type (test)
                             </button>
                         }
                     </div>
@@ -143,11 +143,24 @@ else
                 <div>
                     <h4 class="text-md font-semibold mb-2">Spreadsheet Actions</h4>
                     <div class="flex flex-wrap gap-3">
-                        <button class="btn btn-primary" @onclick="Vm.GenerateTabsAsync">Generate Tabs</button>
-                        <button class="btn btn-primary" @onclick="Vm.ClearExcelAsync">Clear Excel</button>
+                        <button 
+                            class="btn btn-primary" 
+                            @onclick="Vm.GenerateTabsAsync">
+                            📑 Generate Tabs
+                        </button>
+                        <button 
+                            class="btn btn-primary" 
+                            @onclick="Vm.ClearExcelAsync">
+                            🧹 Clear Excel
+                        </button>
                         @if (Vm.SelectedEvent.CoursesAreMerged)
                         {
-                            <button class="btn btn-primary" @onclick="Vm.PopulateNewSignupsAsync" disabled="@(!Vm.CanPopulateNewSignups)">Populate New Signups</button>
+                            <button 
+                                class="btn btn-primary" 
+                                @onclick="Vm.PopulateNewSignupsAsync" 
+                                disabled="@(!Vm.CanPopulateNewSignups)">
+                                📥 Populate New Signups
+                            </button>
                         }
                     </div>
                 </div>

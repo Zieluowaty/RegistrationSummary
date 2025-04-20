@@ -12,7 +12,8 @@ public class Event
     [Required(ErrorMessage = "The event name is required.")]
     [StringLength(100, MinimumLength = 10, ErrorMessage = "The event name has to have 10 to 100 characters.")]
     public string Name { get; set; }
-	public DateOnly StartDate { get; set; }
+	[Required(ErrorMessage = "The event start date is required.")]
+    public DateOnly StartDate { get; set; }
     public EventType EventType { get; set; }
 	public bool CoursesAreMerged { get; set; }
 	[Required(ErrorMessage = "Spreadsheet ID needs to be provided.")]
