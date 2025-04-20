@@ -2,16 +2,18 @@ using System.Text;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using System.Text.RegularExpressions;
+using System.Globalization;
+
 using RegistrationSummary.Common.Models;
 using RegistrationSummary.Common.Models.Bases;
-using System.Globalization;
 using RegistrationSummary.Common.Enums;
+using RegistrationSummary.Common.Styles;
 
 namespace RegistrationSummary.Common.Services;
 
 public class ExcelService
 {
-    private readonly int MAX_ROWS = 2000;
+    private readonly int MAX_ROWS = 200;
     public readonly int ROW_STARTING_INDEX = 6;
 
     public SheetsService SheetService;
@@ -28,29 +30,6 @@ public class ExcelService
     private int[] _prices = Array.Empty<int>();
 
     public List<Request> Requests = new List<Request>();
-
-    private CellFormat CenterBottomCellFormat = new CellFormat
-    {
-        WrapStrategy = "WRAP",
-        HorizontalAlignment = "CENTER",
-        VerticalAlignment = "BOTTOM"
-    };
-
-    private (CellFormat CellFormat, string Fields) CurrencyPlnCellFormat = (
-        new CellFormat
-        {
-            NumberFormat = new NumberFormat { Type = "CURRENCY", Pattern = "#,##0 \"zł\"" }
-        },
-        "userEnteredFormat.numberFormat"
-    );
-
-    private (CellFormat CellFormat, string Fields) CurrencyEurCellFormat = (
-        new CellFormat
-        {
-            NumberFormat = new NumberFormat { Type = "CURRENCY", Pattern = "#,##0 \"€\"" }
-        },
-        "userEnteredFormat.numberFormat"
-    );
 
     public string? _columnNameForInstallmentsSum = null;
     public string ColumnNameForInstallmentsSum
@@ -305,7 +284,7 @@ public class ExcelService
         var acceptedColumn = SelectedEvent?.PreprocessedColumns.Accepted;
 		var firstInstallmentColumn = GetColumnName(GetColumnIndex(SelectedEvent?.PreprocessedColumns.Accepted) + 1);
 
-        for (var rowGroupIndex = 0; rowGroupIndex < SelectedEvent?.Courses.Count; ++rowGroupIndex)
+        for (var rowGroupIndex = 0; rowGroupIndex <= SelectedEvent?.Courses.Count; ++rowGroupIndex)
 		{
 			var rowIndex = rowGroupIndex + 5;
 			// ALL REGISTRATIONS
@@ -373,10 +352,124 @@ public class ExcelService
                 $"=IF(C{rowIndex}<B{rowIndex};B{rowIndex}-C{rowIndex};\" \")");
         }
 
+        Requests.AddRange(
+			GetGroupBalanceFormattingRequests(sheetId.Value, 5 + SelectedEvent?.Courses.Count ?? 0));
+
         BatchUpdate();
     }
 
-	private void GenerateGroupBalanceSummaryHeader(int? sheetId, string columnName)
+    public IList<Request> GetGroupBalanceFormattingRequests(int sheetId, int rowCount)
+    {
+        var requests = new List<Request>();
+
+        // Merge category header blocks
+        requests.AddRange(new[]
+        {
+			MergeCells(sheetId, 1, 2, 1, 5),   // B-E
+			MergeCells(sheetId, 1, 2, 5, 9),   // F-I
+			MergeCells(sheetId, 1, 2, 9, 13),  // J-M
+			MergeCells(sheetId, 1, 2, 13, 17), // N-Q
+			MergeCells(sheetId, 1, 2, 17, 19)  // R-S
+		});
+
+        // Bold + wrap + center all headers except B1,C1
+        requests.Add(new Request
+        {
+            RepeatCell = new RepeatCellRequest
+            {
+                Range = new GridRange
+                {
+                    SheetId = sheetId,
+                    StartRowIndex = 1,
+                    EndRowIndex = 4
+                },
+                Cell = new CellData { UserEnteredFormat = SharedFormats.BoldCenterWrapHeaderFormat.Format },
+                Fields = SharedFormats.BoldCenterWrapHeaderFormat.Fields
+            }
+        });
+
+        // Set borders: under header row (1), under totals (3)
+        requests.AddRange(new[]
+        {
+			BorderRow(sheetId, 1), // Under category row
+			BorderRow(sheetId, 3)  // Under sum row
+		});
+
+        // Vertical separators
+        foreach (var col in new[] { 0, 4, 8, 12, 16 })
+        {
+            requests.Add(BorderColumn(sheetId, col, rowCount, 2));
+        }
+
+        // Narrow all columns B–S
+        requests.Add(new Request
+        {
+            UpdateDimensionProperties = new UpdateDimensionPropertiesRequest
+            {
+                Range = new DimensionRange
+                {
+                    SheetId = sheetId,
+                    Dimension = "COLUMNS",
+                    StartIndex = 1,
+                    EndIndex = 19
+                },
+                Properties = SharedFormats.NarrowColumnWidth.Props,
+                Fields = SharedFormats.NarrowColumnWidth.Fields
+            }
+        });
+
+        return requests;
+    }
+
+    private Request MergeCells(int sheetId, int startRow, int endRow, int startCol, int endCol) => new()
+    {
+        MergeCells = new MergeCellsRequest
+        {
+            Range = new GridRange
+            {
+                SheetId = sheetId,
+                StartRowIndex = startRow,
+                EndRowIndex = endRow,
+                StartColumnIndex = startCol,
+                EndColumnIndex = endCol
+            },
+            MergeType = "MERGE_ALL"
+        }
+    };
+
+    private Request BorderRow(int sheetId, int rowIndex) => new()
+    {
+        UpdateBorders = new UpdateBordersRequest
+        {
+            Range = new GridRange
+            {
+                SheetId = sheetId,
+                StartRowIndex = rowIndex,
+                EndRowIndex = rowIndex + 1,
+                StartColumnIndex = 0,
+                EndColumnIndex = 19
+            },
+            Bottom = SharedFormats.SolidBlackBorder
+        }
+    };
+
+    private Request BorderColumn(int sheetId, int columnIndex, int totalRows, int startRowIndex = 0) => new()
+    {
+        UpdateBorders = new UpdateBordersRequest
+        {
+            Range = new GridRange
+            {
+                SheetId = sheetId,
+                StartRowIndex = startRowIndex,
+                EndRowIndex = totalRows,
+                StartColumnIndex = columnIndex,
+                EndColumnIndex = columnIndex + 1
+            },
+            Right = SharedFormats.SolidBlackBorder
+        }
+    };
+
+    private void GenerateGroupBalanceSummaryHeader(int? sheetId, string columnName)
 	{
 		var columnIndex = GetColumnIndex(columnName);
 
@@ -548,16 +641,16 @@ public class ExcelService
 			SetCellFormat(
 				sheetId.Value,
 				$"{SummaryTabName}!{GetColumnName(discountColumn)}{rowIndex}",
-				CurrencyPlnCellFormat.CellFormat,
-				CurrencyPlnCellFormat.Fields
+                SharedFormats.CurrencyPlnCellFormat.Format,
+                SharedFormats.CurrencyPlnCellFormat.Fields
 			);
 
 			// Sum to be paid for all courses minus discount.
 			SetCellFormat(
 				sheetId.Value,
 				$"{SummaryTabName}!{GetColumnName(installmentSumColumn)}{rowIndex}",
-				CurrencyPlnCellFormat.CellFormat,
-				CurrencyPlnCellFormat.Fields
+                SharedFormats.CurrencyPlnCellFormat.Format,
+                SharedFormats.CurrencyPlnCellFormat.Fields
 			);
 
 			AddFormula(
@@ -570,8 +663,8 @@ public class ExcelService
 			SetCellFormat(
 				sheetId.Value,
 				$"{SummaryTabName}!{GetColumnName(needToBePaidColumn)}{rowIndex}",
-				CurrencyPlnCellFormat.CellFormat,
-				CurrencyPlnCellFormat.Fields
+                SharedFormats.CurrencyPlnCellFormat.Format,
+                SharedFormats.CurrencyPlnCellFormat.Fields
 			);
 
 			AddFormula(
