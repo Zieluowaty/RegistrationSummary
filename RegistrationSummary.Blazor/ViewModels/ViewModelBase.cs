@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.JSInterop;
+using RegistrationSummary.Blazor.Services;
 using RegistrationSummary.Common.Models;
 using RegistrationSummary.Common.Services;
 using System.ComponentModel;
@@ -12,10 +12,34 @@ namespace RegistrationSummary.Blazor.ViewModels;
 
 public class ViewModelBase : INotifyPropertyChanged
 {
+    // === Events ===
     public event PropertyChangedEventHandler? PropertyChanged;
     protected void OnPropertyChanged([CallerMemberName] string? name = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
+    // === Dependencies ===
+    private readonly ILogger<MainPageViewModel> _logger;
+    private readonly FileLoggerService _fileLogger;
+    private readonly IJSRuntime _jsRuntime;
+    private readonly NavigationManager _navigationManager;
+    private readonly ToastService _toastService;
+
+    // === Constructor ===
+    public ViewModelBase(
+        ILogger<MainPageViewModel> logger,
+        FileLoggerService fileLoggerService,
+        IJSRuntime jsRuntime,
+        NavigationManager navigationManager,
+        ToastService toastService)
+    {
+        _logger = logger;
+        _fileLogger = fileLoggerService;
+        _jsRuntime = jsRuntime;
+        _navigationManager = navigationManager;
+        _toastService = toastService;
+    }
+
+    // === Properties ===
     private bool _isBusy;
     public bool IsBusy
     {
@@ -30,39 +54,12 @@ public class ViewModelBase : INotifyPropertyChanged
         }
     }
 
-    private readonly ILogger<MainPageViewModel> _logger;
-    private readonly FileLoggerService _fileLogger;
-
     private List<LogEntry> _logLines = new();
     public IReadOnlyList<LogEntry> MessageLogLines => _logLines;
 
-    private string _messageLog = string.Empty;
-    public string MessageLog
-    {
-        get => _messageLog;
-        set
-        {
-            if (_messageLog != value)
-            {
-                _messageLog = value;
-                OnPropertyChanged();
-            }
-        }
-    }
+    public Action? OnLogUpdated { get; set; }
 
-    private readonly IJSRuntime _jsRuntime;
-    private readonly NavigationManager _navigationManager;
-
-    public ViewModelBase(ILogger<MainPageViewModel> logger, FileLoggerService fileLoggerService,
-        IJSRuntime jsRuntime, NavigationManager navigationManager)
-    {
-        _logger = logger;
-        _fileLogger = fileLoggerService;
-
-        _jsRuntime = jsRuntime;
-        _navigationManager = navigationManager;
-    }
-
+    // === Logging & Messaging ===
     protected void AddLog(string message, Exception? ex = null, LogLevel level = LogLevel.Info, string methodName = "")
     {
         var colorClass = level switch
@@ -89,11 +86,18 @@ public class ViewModelBase : INotifyPropertyChanged
         }
 
         OnPropertyChanged(nameof(MessageLogLines));
+        OnLogUpdated?.Invoke();
     }
 
     protected void ClearLog()
     {
         _logLines.Clear();
+        OnPropertyChanged(nameof(MessageLogLines));
+    }
+
+    protected void ShowToast(string message)
+    {
+        _toastService.Show(message);
     }
 
     public async Task<bool> ConfirmAsync(string message)
@@ -104,5 +108,23 @@ public class ViewModelBase : INotifyPropertyChanged
     public void NavigateTo(string url)
     {
         _navigationManager.NavigateTo(url);
+    }
+
+    protected async Task RunWithBusyIndicator(Func<Task> action)
+    {
+        IsBusy = true;
+        OnPropertyChanged(nameof(IsBusy)); // just in case
+
+        await Task.Yield();
+
+        try
+        {
+            await action();
+        }
+        finally
+        {
+            IsBusy = false;
+            OnPropertyChanged(nameof(IsBusy));
+        }
     }
 }

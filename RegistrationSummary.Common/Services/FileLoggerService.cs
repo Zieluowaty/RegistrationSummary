@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using RegistrationSummary.Common.Models;
+using RegistrationSummary.Common.Configurations;
 using System.Text;
 
 namespace RegistrationSummary.Common.Services;
@@ -9,7 +9,7 @@ public class FileLoggerService
     private readonly string _logDirectory;
     private readonly int _retentionDays;
 
-    public FileLoggerService(IOptions<Settings> settingsOptions)
+    public FileLoggerService(IOptions<SettingConfiguration> settingsOptions)
     {
         var settings = settingsOptions.Value;
         _logDirectory = Path.Combine(settings.ConfigFilesRoot ?? "C:/RegistrationSummary", "logs");

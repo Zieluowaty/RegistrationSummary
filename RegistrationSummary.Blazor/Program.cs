@@ -9,31 +9,23 @@ using RegistrationSummary.Blazor.ViewModels;
 using RegistrationSummary.Common.Services;
 using RegistrationSummary.Blazor.Services;
 
-// 1. Inicjalizacja buildera
 var builder = WebApplication.CreateBuilder(args);
 
-// 2. Konfiguracja JSON
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
 builder.Services.AddSingleton<FileService>();
 
-// 3. Wczytaj konfiguracje (appsettings.json → klasy konfiguracyjne)
-builder.Services.Configure<MailerConfiguration>(builder.Configuration.GetSection("MailerConfiguration"));
-builder.Services.Configure<ColumnsConfiguration>(builder.Configuration.GetSection("ColumnsConfiguration"));
-
 builder.Services.AddSingleton(provider =>
 {
     var fileService = provider.GetRequiredService<FileService>();
-
-    return fileService.Load<Settings>("Settings.json");    
+    return fileService.Load<SettingConfiguration>("Settings.json");
 });
 
-// 4. Google SheetsService singleton z użyciem Credentials.json
 builder.Services.AddSingleton(provider =>
 {
-    var settings = provider.GetRequiredService<IOptions<Settings>>().Value;
+    var settingConfiguration = provider.GetRequiredService<SettingConfiguration>();
 
-    var credentialPath = Path.Combine(settings.ConfigFilesRoot ?? "C:/RegistrationSummary", "Credentials.json");
+    var credentialPath = Path.Combine(settingConfiguration.ConfigFilesRoot, "Credentials.json");
 
     using var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read);
     var credential = GoogleCredential.FromStream(stream)
@@ -46,11 +38,10 @@ builder.Services.AddSingleton(provider =>
     });
 });
 
-// 5. Emails.json → EmailJsonModel[]
 builder.Services.AddSingleton(provider =>
 {
-	var settings = provider.GetRequiredService<IOptions<Settings>>().Value;
-	var filePath = Path.Combine(settings.ConfigFilesRoot ?? "C:/RegistrationSummary", "Emails.json");
+	var settings = provider.GetRequiredService<SettingConfiguration>();
+	var filePath = Path.Combine(settings.ConfigFilesRoot, "Emails.json");
 
 	if (!File.Exists(filePath))
 		throw new FileNotFoundException($"Nie znaleziono {filePath}");
@@ -59,13 +50,23 @@ builder.Services.AddSingleton(provider =>
 	return JsonSerializer.Deserialize<List<EmailJsonModel>>(json) ?? new();
 });
 
-// 6. Rejestracja pozostałych serwisów
 builder.Services.AddSingleton<EventService>();
 builder.Services.AddSingleton<ExcelService>();
-builder.Services.AddSingleton<MailerService>();
+
+builder.Services.AddSingleton(provider =>
+{
+    var settings = provider.GetRequiredService<SettingConfiguration>();
+    var excelService = provider.GetRequiredService<ExcelService>();
+    var emailsTemplates = provider.GetRequiredService<List<EmailJsonModel>>();
+
+    return new MailerService(
+        settings.MailerConfiguration,
+        excelService,
+        emailsTemplates);
+});
+
 builder.Services.AddSingleton<FileLoggerService>();
 
-// 6.1 Rejestracja ViewModeli
 builder.Services.AddScoped<MainPageViewModel>();
 builder.Services.AddTransient<EventModificationPageViewModel>();
 

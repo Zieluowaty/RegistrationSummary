@@ -20,8 +20,6 @@ public class EventModificationPageViewModel : ViewModelBase
     private readonly SheetsService _sheetsService;
     private readonly EventService _eventService;
 
-    private readonly ToastService _toastService;
-
     public Event? Event { get; private set; }
 
     private ValidationContext _validationContext;
@@ -68,13 +66,11 @@ public class EventModificationPageViewModel : ViewModelBase
         ToastService toastService,
         FileLoggerService fileLoggerService,
         ILogger<MainPageViewModel> logger)
-        : base(logger, fileLoggerService, jsRuntime, navigationManager)
+        : base(logger, fileLoggerService, jsRuntime, navigationManager, toastService)
     {
         _mainVm = mainVm;
         _sheetsService = sheetsService;
         _eventService = eventService;
-
-        _toastService = toastService;
     }
 
     public void Initialize(int? eventId)
@@ -100,7 +96,7 @@ public class EventModificationPageViewModel : ViewModelBase
         var found = _eventService.GetById(eventId.Value);
         if (found is null)
         {
-            _toastService.Show("Failed to load the event.");
+            ShowToast("Failed to load the event.");
             NavigateTo("/");
             return;
         }
@@ -152,7 +148,7 @@ public class EventModificationPageViewModel : ViewModelBase
         _mainVm.SelectedEvent.PreprocessedColumns = Event.PreprocessedColumns;
 
         _mainVm.OnEventModified();
-        _toastService.Show("Event saved successfully!");
+        ShowToast("Event saved successfully!");
         NavigateTo("/");
     }
 

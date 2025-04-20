@@ -10,6 +10,14 @@
 
 @inject NavigationManager Navigation
 
+@code {
+
+    protected override void OnInitialized()
+    {
+        Vm.OnLogUpdated = () => InvokeAsync(StateHasChanged);
+    }
+}
+
 <h2 class="text-2xl font-bold text-center mb-6">Event Management</h2>
 
 @if (Vm.IsBusy)
@@ -48,12 +56,12 @@ else
                         ✏️ Edit
                     </button>
 
-                    <button class="btn btn-sm btn-secondary"
+                    <button class="btn btn-sm btn-primary"
                             @onclick="@(() => Navigation.NavigateTo("/event/new"))">
                         ➕ Add
                     </button>
 
-                    <button class="btn btn-sm btn-accent"
+                    <button class="btn btn-sm btn-primary"
                             disabled="@(!Vm.CanEditSelected)"
                             @onclick="Vm.CloneSelectedEventAsync">
                         🌀 Clone

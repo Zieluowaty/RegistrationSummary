@@ -1,8 +1,11 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Text;
 using Google.Apis.Sheets.v4;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using RegistrationSummary.Blazor.Services;
+using RegistrationSummary.Common.Configurations;
 using RegistrationSummary.Common.Enums;
 using RegistrationSummary.Common.Models;
 using RegistrationSummary.Common.Services;
@@ -18,7 +21,7 @@ public class MainPageViewModel : ViewModelBase
     private readonly MailerService _mailerService;
     private readonly SheetsService _googleSheetsService;
     
-    private readonly Settings _settings;
+    private readonly SettingConfiguration _settings;
     
     public ObservableCollection<Event> Events { get; private set; } = new();
     public bool CanEditSelected => SelectedEvent is not null;
@@ -58,12 +61,13 @@ public class MainPageViewModel : ViewModelBase
         ExcelService excelService,
         SheetsService googleSheetsService,
         MailerService mailerService,
-        Settings settings,
+        SettingConfiguration settings,
         FileLoggerService fileLoggerService,
         ILogger<MainPageViewModel> logger,
         IJSRuntime jsRuntime,
-        NavigationManager navigationManager)
-        : base (logger, fileLoggerService, jsRuntime, navigationManager)  
+        NavigationManager navigationManager,
+        ToastService toastService)
+        : base(logger, fileLoggerService, jsRuntime, navigationManager, toastService)
     {
         _eventService = eventService;
         _excelService = excelService;
@@ -72,6 +76,16 @@ public class MainPageViewModel : ViewModelBase
         _settings = settings;
 
         LoadEvents();
+
+        if (!_mailerService.IsConnectionSuccessful())
+        {
+            AddLog("Mail server connection failed. Please check your settings.", null, LogLevel.Error);
+            ShowToast("Mail server connection failed. Please check your settings.");
+        }
+        else
+        {
+            AddLog("Mail server connection successful.", null, LogLevel.Info);
+        }
     }
 
     private void LoadEvents()
@@ -106,11 +120,8 @@ public class MainPageViewModel : ViewModelBase
         NavigateTo($"/event/edit/{clone.Id}");
     }
 
-
-
     public void OnEventModified()
     {
-        // Wymuś odświeżenie powiązanych właściwości
         OnPropertyChanged(nameof(SelectedEvent));
         OnPropertyChanged(nameof(CanPopulateNewSignups));
 
@@ -148,10 +159,8 @@ public class MainPageViewModel : ViewModelBase
         if (SelectedEvent == null || IsBusy)
             return;
 
-        try
+        await RunWithBusyIndicator(async () =>
         {
-            IsBusy = true;
-
             AddLog($"Checking spreadsheet for event: {SelectedEvent.Name}");
 
             var spreadsheet = _googleSheetsService
@@ -172,45 +181,37 @@ public class MainPageViewModel : ViewModelBase
             }
 
             AddLog("Validation passed. Generating tabs...");
+
             await Task.Run(() => _excelService.GenerateTabs(SelectedEvent));
 
             UpdateSignupEligibility();
 
             AddLog("Tabs generated successfully.");
-        }
-        catch (Exception ex)
-        {
-            AddLog($"Error: [GenerateTabsAsync] {ex.Message}", ex, LogLevel.Error, MethodBase.GetCurrentMethod().Name);
-        }
-        finally
-        {
-            IsBusy = false;
-        }
+        });
     }
 
     public async Task ClearExcelAsync()
     {
-        if (SelectedEvent == null || IsBusy) 
+        if (SelectedEvent == null || IsBusy)
             return;
 
-        try
+        await RunWithBusyIndicator(async () =>
         {
-            IsBusy = true;
-            await Task.Run(() => _excelService.ClearExcel());
-        
-            UpdateSignupEligibility();
+            try
+            {
+                await Task.Run(() => _excelService.ClearExcel());
 
-            AddLog("Excel cleared.");
-        }
-        catch (Exception ex)
-        {
-            AddLog($"Error: [ClearExcelAsync] {ex.Message}", ex, LogLevel.Error, MethodBase.GetCurrentMethod().Name);
-        }
-        finally
-        {
-            IsBusy = false;
-        }
+                UpdateSignupEligibility();
+
+                AddLog("Excel cleared.");
+            }
+            catch (Exception ex)
+            {
+                AddLog($"Error: [ClearExcelAsync] {ex.Message}", ex, LogLevel.Error, MethodBase.GetCurrentMethod()?.Name ?? "ClearExcelAsync");
+            }
+        });
     }
+
 
     public async Task SendEmailsAsync(EmailType type, bool isTest = false)
     {
@@ -220,34 +221,85 @@ public class MainPageViewModel : ViewModelBase
             return;
         }
 
-        try
+        await RunWithBusyIndicator(async () =>
         {
-            AddLog($"{(isTest ? "[TEST] " : "")}Preparing student data...");
-            var students = _excelService.GetStudentsFromRegularSemestersSheet();
-
-            if (!students.Any())
+            try
             {
-                AddLog("No students found.");
-                return;
+                AddLog($"{(isTest ? "[TEST] " : "")}Preparing student data...");
+                var students = _excelService.GetStudentsFromRegularSemestersSheet();
+
+                if (!students.Any())
+                {
+                    AddLog("No students found.");
+                    ShowToast("No students found.");
+                    return;
+                }
+
+                AddLog($"Loaded {students.Count} students.");
+
+                Dictionary<EmailType, int> summary;
+                if (type == EmailType.All)
+                {
+                    summary = _mailerService.GetEmailCountsPerType(students)
+                        .Where(kvp => kvp.Value > 0)
+                        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                    if (!summary.Any())
+                    {
+                        AddLog("No emails to send.");
+                        ShowToast("No emails to send.");
+                        return;
+                    }
+                }
+                else
+                {
+                    var count = _mailerService.GetPendingRecipientsOfType(students, type).Count;
+                    if (count == 0)
+                    {
+                        ShowToast($"No '{type}' emails to send.");
+                        AddLog($"No '{type}' emails to send.");
+                        return;
+                    }
+
+                    summary = new Dictionary<EmailType, int> { [type] = count };
+                }
+
+                // Potwierdzenie
+                var sb = new StringBuilder();
+                sb.AppendLine("Do you want to send:");
+
+                foreach (var kvp in summary)
+                    sb.AppendLine($"{kvp.Value} \"{kvp.Key}\" emails");
+
+                var confirm = await ConfirmAsync(sb.ToString());
+                if (!confirm)
+                {
+                    ShowToast("Sending canceled by user.");
+                    AddLog("Sending canceled by user.");
+                    return;
+                }
+
+                if (type == EmailType.All)
+                {
+                    await Task.Run(() => _mailerService.PrepareAndSendEmailsForRegularSemesters(students, isTest, msg => AddLog(msg)));
+                    ShowToast("Sending emails ended.");
+                    AddLog("Sending emails ended.");
+                }
+                else
+                {
+                    await Task.Run(() => _mailerService.SendEmailsOfType(students, type, isTest, msg => AddLog(msg)));
+                    ShowToast($"Sending {type} emails ended.");
+                    AddLog($"Sending {type} emails ended.");
+                }
             }
-
-            AddLog($"Loaded {students.Count} students. Sending...");
-
-            if (type == EmailType.All)
+            catch (Exception ex)
             {
-                await Task.Run(() => _mailerService.PrepareAndSendEmailsForRegularSemesters(students, isTest));
+                AddLog($"Error during sending emails: {ex.Message}", 
+                    ex, 
+                    LogLevel.Error, 
+                    MethodBase.GetCurrentMethod()?.Name ?? "SendEmailsAsync");
             }
-            else
-            {
-                await Task.Run(() => _mailerService.SendEmailsOfType(students, type, isTest));
-            }
-
-            AddLog($"{type} emails sent.");
-        }
-        catch (Exception ex)
-        {
-            AddLog($"Error during sending emails: {ex.Message}", ex, LogLevel.Error, MethodBase.GetCurrentMethod().Name);
-        }
+        });
     }
 
     public async Task PopulateNewSignupsAsync()
@@ -261,22 +313,19 @@ public class MainPageViewModel : ViewModelBase
             return;
         }
 
-        try
+        await RunWithBusyIndicator(async () =>
         {
-            IsBusy = true;
-
-            AddLog("Searching for new registrations...");
-            await Task.Run(() => _excelService.PopulateRegistrationTabForAggregatedData());
-            AddLog("New signups populated successfully.");
-        }
-        catch (Exception ex)
-        {
-            AddLog($"Error while populating new signups: {ex.Message}", ex, LogLevel.Error, MethodBase.GetCurrentMethod().Name);
-        }
-        finally
-        {
-            IsBusy = false;
-        }
+            try
+            {
+                AddLog("Searching for new registrations...");
+                await Task.Run(() => _excelService.PopulateRegistrationTabForAggregatedData());
+                AddLog("New signups populated successfully.");
+            }
+            catch (Exception ex)
+            {
+                AddLog($"Error while populating new signups: {ex.Message}", ex, LogLevel.Error, MethodBase.GetCurrentMethod()?.Name ?? "PopulateNewSignupsAsync");
+            }
+        });
     }
 
     private void UpdateSignupEligibility()

@@ -1,11 +1,13 @@
 ﻿namespace RegistrationSummary.Common.Configurations;
 
-	public class MailerConfiguration
-	{
-		public string? Mail;
-		public string? Password;
-		public string? ServerName;
-		public int ServerPort;
+public class MailerConfiguration
+{
+    public string? Mail { get; set; }
+    public string? Password { get; set; }
+    public string? ServerName { get; set; }
+    public int ServerPort { get; set; }
 
-		public MailerConfiguration() { }
-	}
+    public string TestMailRecepientEmailAddress { get; set; }
+
+    public MailerConfiguration() { }
+}
