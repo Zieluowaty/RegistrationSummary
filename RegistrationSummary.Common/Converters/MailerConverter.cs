@@ -113,7 +113,7 @@ public class MailerConverter
     {
         if (student.Courses?.Any(course => !course.IsSolo) ?? false)
         {
-            // Remowe only <INSTALLMENT> marks if student want to pay in installments.
+            // Remowe only <COUPLE> marks if student want to pay in installments.
             output =
                 output
                 .Replace("<COUPLE>", string.Empty)
@@ -121,7 +121,7 @@ public class MailerConverter
         }
         else
         {
-            // Remove all texts inside of <INSTALLMENT> marks if student wants to pay normal.
+            // Remove all texts inside of <COUPLE> marks if student wants to pay normal.
             string pattern = @"<COUPLE>.*?</COUPLE>";
             output = Regex.Replace(output, pattern, string.Empty);
         }
@@ -133,14 +133,14 @@ public class MailerConverter
     {
         if (student.Courses?.Any(course => string.IsNullOrEmpty(course.EmailCommentary)) ?? false)
         {
-            // Remowe only <INSTALLMENT> marks if student want to pay in installments.
+            // Remowe only <COMMENTARY> marks if student want to pay in installments.
             output =
                 output
                 .Replace("<COMMENTARY/>", string.Empty);
         }
         else
         {
-            // Remove all texts inside of <INSTALLMENT> marks if student wants to pay normal.
+            // Remove all texts inside of <COMMENTARY> marks if student wants to pay normal.
             string pattern = @"<COMMENTARY/>";
             output = Regex.Replace(output, pattern, student.MergedCoursesEmailCommentary(emailType));
         }

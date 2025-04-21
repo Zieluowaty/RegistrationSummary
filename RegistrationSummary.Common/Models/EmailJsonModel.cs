@@ -5,19 +5,13 @@ public class EmailJsonModel
     public string Name { get; set; }
     public string Title { get; set; }
 
-    private List<string> _headers = new List<string>();
-    public List<string> Header { set => _headers = value; }
-    public string HeaderMerged { get => _headers.Aggregate("", (current, header) => $"{current}{header}"); }
+    public List<string> Header { get; set; } = new();
+    public List<string> PaymentInfo { get; set; } = new();
+    public List<string> CourseInfo { get; set; } = new();
+    public List<string> Footer { get; set; } = new();
 
-    private List<string> _paymentInfos = new List<string>();
-    public List<string> PaymentInfo { set => _paymentInfos = value; }
-    public string PaymentInfoMerged { get => _paymentInfos.Aggregate("", (current, paymentInfo) => $"{current}{paymentInfo}"); }
-
-    private List<string> _courseInfos = new List<string>();
-    public List<string> CourseInfo { set => _courseInfos = value; }
-    public string CourseInfoMerged { get => _courseInfos.Aggregate("", (current, courseInfo) => $"{current}{courseInfo}"); }
-
-    private List<string> _footers = new List<string>();
-    public List<string> Footer { set => _footers = value; }
-    public string FooterMerged { get => _footers.Aggregate("", (current, footer) => $"{current}{footer}"); }
+    public string HeaderMerged => string.Join("", Header);
+    public string PaymentInfoMerged => string.Join("", PaymentInfo);
+    public string CourseInfoMerged => string.Join("", CourseInfo);
+    public string FooterMerged => string.Join("", Footer);
 }

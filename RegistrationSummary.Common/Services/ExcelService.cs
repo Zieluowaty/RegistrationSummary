@@ -994,7 +994,7 @@ public class ExcelService
                         commentary = foundStudent.MissingPartner;
                         break;
                     default:
-                        return;
+                        break;
                 }
 
 				course.EmailCommentary = commentary;

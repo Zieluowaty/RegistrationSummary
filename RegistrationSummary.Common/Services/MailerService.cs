@@ -166,6 +166,11 @@ public class MailerService
 
     protected virtual void SendEmail(MimeMessage message, bool isTest = false, int retries = 0)
     {
+        if (string.IsNullOrEmpty(message.Subject) || string.IsNullOrEmpty(message.HtmlBody))
+        {
+            // TODO: DO SOMETHING.
+        }
+
         using (var client = new SmtpClient())
         {
             try
@@ -178,7 +183,10 @@ public class MailerService
                     message.To.Clear();
                     message.Cc.Clear();
                     message.Bcc.Clear();
+
                     message.To.Add(MailboxAddress.Parse(_testRecipientEmail));
+                    message.Cc.Add(MailboxAddress.Parse(_testRecipientEmail));
+
                     message.Subject = $"[TEST] {message.Subject}";
                 }
 
