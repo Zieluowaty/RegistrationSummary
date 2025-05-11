@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using RegistrationSummary.Blazor.Services;
 using RegistrationSummary.Blazor.ViewModels.Helpers;
-using RegistrationSummary.Common.Configurations;
 using RegistrationSummary.Common.Models;
 using RegistrationSummary.Common.Services;
 using System.ComponentModel.DataAnnotations;

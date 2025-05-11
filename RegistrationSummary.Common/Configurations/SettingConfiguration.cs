@@ -1,9 +1,7 @@
 ﻿namespace RegistrationSummary.Common.Configurations;
 
 public class SettingConfiguration
-{
-	public string? ConfigFilesRoot { get; set; }
-	
+{	
     public MailerConfiguration MailerConfiguration { get; set; } = new();
 
     // Tabs' titles.

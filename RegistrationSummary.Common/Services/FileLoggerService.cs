@@ -12,7 +12,7 @@ public class FileLoggerService
     public FileLoggerService(IOptions<SettingConfiguration> settingsOptions)
     {
         var settings = settingsOptions.Value;
-        _logDirectory = Path.Combine(settings.ConfigFilesRoot ?? "C:/RegistrationSummary", "logs");
+        _logDirectory = Path.Combine(FileService.BasePath, "logs");
         _retentionDays = settings.LogRetentionDays;
 
         if (!Directory.Exists(_logDirectory))

@@ -1,10 +1,8 @@
-﻿using Microsoft.Extensions.Options;
-using RegistrationSummary.Common.Configurations;
+﻿using RegistrationSummary.Common.Configurations;
 using RegistrationSummary.Common.Models;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
-using System.Text.Json;
 using RegistrationSummary.Blazor.ViewModels;
 using RegistrationSummary.Common.Services;
 using RegistrationSummary.Blazor.Services;
@@ -23,12 +21,15 @@ builder.Services.AddSingleton(provider =>
 
 builder.Services.AddSingleton(provider =>
 {
-    var settingConfiguration = provider.GetRequiredService<SettingConfiguration>();
+    var credentialsPath = Path.Combine(FileService.BasePath, "Credentials.json");
 
-    var credentialPath = Path.Combine(settingConfiguration.ConfigFilesRoot, "Credentials.json");
+    if (!File.Exists(credentialsPath))
+        throw new FileNotFoundException($"Credentials file not found: {credentialsPath}");
 
-    using var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read);
-    var credential = GoogleCredential.FromStream(stream)
+    var credentialsJson = File.ReadAllText(credentialsPath);
+
+    var credential = GoogleCredential
+        .FromJson(credentialsJson)
         .CreateScoped(SheetsService.Scope.Spreadsheets);
 
     return new SheetsService(new BaseClientService.Initializer
@@ -40,14 +41,9 @@ builder.Services.AddSingleton(provider =>
 
 builder.Services.AddSingleton(provider =>
 {
-	var settings = provider.GetRequiredService<SettingConfiguration>();
-	var filePath = Path.Combine(settings.ConfigFilesRoot, "Emails.json");
-
-	if (!File.Exists(filePath))
-		throw new FileNotFoundException($"Nie znaleziono {filePath}");
-
-	var json = File.ReadAllText(filePath);
-	return JsonSerializer.Deserialize<List<EmailJsonModel>>(json) ?? new();
+    var fileService = provider.GetRequiredService<FileService>();
+ 
+	return fileService.Load<List<EmailJsonModel>>("Emails.json") ?? new();
 });
 
 builder.Services.AddSingleton<EventService>();

@@ -1,8 +1,6 @@
 ﻿// Services/MailerService.cs
-using Google.Apis.Logging;
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.Extensions.Options;
 using MimeKit;
 using RegistrationSummary.Common.Configurations;
 using RegistrationSummary.Common.Converters;

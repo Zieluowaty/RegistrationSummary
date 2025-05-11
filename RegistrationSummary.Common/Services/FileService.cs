@@ -4,20 +4,17 @@ using System.Text.Json;
 
 public class FileService
 {
-	private readonly string _basePath = "C:/RegistrationSummary";
+	public static readonly string BasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "RegistrationSummary");
 
 	public FileService(IConfiguration configuration)
-	{
-		// Zakładamy, że w appsettings.json jest: "Settings:ConfigFilesRoot": "C:/RegistrationSummary"
-		_basePath = configuration["Settings:ConfigFilesRoot"] ?? "C:/RegistrationSummary";
-	}
+	{ }
 
 	public T Load<T>(string filename)
 	{
-		var fullPath = Path.Combine(_basePath, filename);
+		var fullPath = Path.Combine(BasePath, filename);
 
 		if (!File.Exists(fullPath))
-			throw new FileNotFoundException($"Plik '{filename}' nie istnieje w ścieżce {_basePath}");
+			throw new FileNotFoundException($"Plik '{filename}' nie istnieje w ścieżce {BasePath}");
 
 		var json = File.ReadAllText(fullPath);
 		return JsonSerializer.Deserialize<T>(json)!;
@@ -25,7 +22,7 @@ public class FileService
 
 	public void Save<T>(string filename, T data)
 	{
-		var fullPath = Path.Combine(_basePath, filename);
+		var fullPath = Path.Combine(BasePath, filename);
 		var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
 		File.WriteAllText(fullPath, json);
 	}
@@ -63,9 +60,9 @@ public class FileService
 			var resourceName = $"{assembly.GetName().Name}.Templates.{fileName}";
 			var templateContent = ReadEmbeddedResource(resourceName);
 
-			var fullPath = Path.Combine(_basePath, fileName);
+			var fullPath = Path.Combine(BasePath, fileName);
 
-			Directory.CreateDirectory(_basePath);
+			Directory.CreateDirectory(BasePath);
 
 			if (!File.Exists(fullPath))
 			{
