@@ -4,7 +4,11 @@ using System.Text.Json;
 
 public class FileService
 {
-	public static readonly string BasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "RegistrationSummary");
+	public string UserFolderName { get; set; }
+	public string BasePath =>
+		!string.IsNullOrEmpty(UserFolderName)
+			? Path.Combine("C:/RegistrationSummary", UserFolderName)
+			: " "; 
 
 	public FileService(IConfiguration configuration)
 	{ }

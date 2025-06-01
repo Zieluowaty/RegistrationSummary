@@ -1,7 +1,14 @@
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.AspNetCore.Components
 
+@using RegistrationSummary.Blazor.Pages
+@using RegistrationSummary.Blazor.Services
 @using RegistrationSummary.Blazor.Shared
+
+@inject AuthenticationService AuthService
+@inject NavigationManager Navigation
+
+<LoginGate />
 
 <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">

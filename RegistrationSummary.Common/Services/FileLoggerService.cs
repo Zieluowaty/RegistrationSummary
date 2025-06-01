@@ -9,10 +9,10 @@ public class FileLoggerService
     private readonly string _logDirectory;
     private readonly int _retentionDays;
 
-    public FileLoggerService(IOptions<SettingConfiguration> settingsOptions)
+    public FileLoggerService(IOptions<SettingConfiguration> settingsOptions, FileService fileService)
     {
         var settings = settingsOptions.Value;
-        _logDirectory = Path.Combine(FileService.BasePath, "logs");
+        _logDirectory = Path.Combine(fileService.BasePath, "Logs");
         _retentionDays = settings.LogRetentionDays;
 
         if (!Directory.Exists(_logDirectory))

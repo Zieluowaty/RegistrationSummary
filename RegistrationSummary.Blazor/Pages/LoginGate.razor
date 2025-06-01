@@ -1,0 +1,33 @@
+﻿@page "/login-gate"
+
+@using Microsoft.AspNetCore.Authentication
+@using AuthenticationService = RegistrationSummary.Blazor.Services.AuthenticationService;
+
+@inject NavigationManager Navigation
+@inject AuthenticationService AuthService
+
+@code {
+    private bool showNotice = false;
+
+    protected override void OnInitialized()
+    {
+        var isLoginPage = Navigation.Uri.EndsWith("/login", StringComparison.OrdinalIgnoreCase);
+
+        if (!AuthService.IsAuthenticated)
+        {
+            if (!isLoginPage)
+            {
+                showNotice = true;
+                //Navigation.NavigateTo("/login", forceLoad: true);
+            }
+        }
+    }
+}
+
+@if (showNotice)
+{
+    <div class="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded relative" role="alert">
+        <strong class="font-bold">Session expired.</strong>
+        <span class="block sm:inline">Please log in again to continue.</span>
+    </div>
+}

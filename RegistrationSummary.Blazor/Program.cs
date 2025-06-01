@@ -11,17 +11,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
-builder.Services.AddSingleton<FileService>();
+builder.Services.AddScoped<FileService>();
 
-builder.Services.AddSingleton(provider =>
+builder.Services.AddScoped(provider =>
 {
     var fileService = provider.GetRequiredService<FileService>();
     return fileService.Load<SettingConfiguration>("Settings.json");
 });
 
-builder.Services.AddSingleton(provider =>
+builder.Services.AddScoped(provider =>
 {
-    var credentialsPath = Path.Combine(FileService.BasePath, "Credentials.json");
+    var fileService = provider.GetRequiredService<FileService>();
+    var credentialsPath = Path.Combine(fileService.BasePath, "Credentials.json");
 
     if (!File.Exists(credentialsPath))
         throw new FileNotFoundException($"Credentials file not found: {credentialsPath}");
@@ -39,17 +40,17 @@ builder.Services.AddSingleton(provider =>
     });
 });
 
-builder.Services.AddSingleton(provider =>
+builder.Services.AddScoped(provider =>
 {
     var fileService = provider.GetRequiredService<FileService>();
  
 	return fileService.Load<List<EmailJsonModel>>("Emails.json") ?? new();
 });
 
-builder.Services.AddSingleton<EventService>();
-builder.Services.AddSingleton<ExcelService>();
+builder.Services.AddScoped<EventService>();
+builder.Services.AddScoped<ExcelService>();
 
-builder.Services.AddSingleton(provider =>
+builder.Services.AddScoped(provider =>
 {
     var settings = provider.GetRequiredService<SettingConfiguration>();
     var excelService = provider.GetRequiredService<ExcelService>();
@@ -61,12 +62,15 @@ builder.Services.AddSingleton(provider =>
         emailsTemplates);
 });
 
-builder.Services.AddSingleton<FileLoggerService>();
+builder.Services.AddScoped<FileLoggerService>();
 
 builder.Services.AddScoped<MainPageViewModel>();
 builder.Services.AddTransient<EventModificationPageViewModel>();
+builder.Services.AddTransient<LoginPageViewModel>();
 
-builder.Services.AddSingleton<ToastService>();
+builder.Services.AddScoped<ToastService>();
+
+builder.Services.AddScoped<AuthenticationService>();
 
 // 7. Blazor i routing
 builder.Services.AddRazorPages();

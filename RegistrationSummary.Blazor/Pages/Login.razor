@@ -1,0 +1,24 @@
+﻿@page "/login"
+
+@using RegistrationSummary.Blazor.ViewModels
+
+@inject LoginPageViewModel Vm
+
+<PageTitle>Login</PageTitle>
+
+<div class="max-w-md mx-auto mt-10">
+    @if (!Vm.RequiresInitialization)
+    {
+        <input class="input" placeholder="Username" @bind="Vm.Username" />
+        <input class="input" type="password" placeholder="Password" @bind="Vm.Password" />
+        <button class="btn btn-primary mt-4" @onclick="Vm.TryLoginAsync">Login</button>
+    }
+    else
+    {
+        <p class="text-sm text-gray-500 mt-4">This is your first login. Please set your password and email.</p>
+        <input class="input" placeholder="Email" @bind="Vm.Email" />
+        <input class="input" type="password" placeholder="New Password" @bind="Vm.NewPassword" />
+        <input class="input" type="password" placeholder="Repeat Password" @bind="Vm.RepeatPassword" />
+        <button class="btn btn-primary mt-4" @onclick="Vm.InitializeAccountAsync">Submit</button>
+    }
+</div>
