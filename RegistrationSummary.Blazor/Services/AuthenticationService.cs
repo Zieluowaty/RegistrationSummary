@@ -78,9 +78,10 @@ public class AuthenticationService
         user.Email = email;
 
         await Task.Run(SaveUsers);
-        
+
         return true;
     }
+
     private bool IsEmailValid(string email)
         => Regex.IsMatch(email,
             @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
