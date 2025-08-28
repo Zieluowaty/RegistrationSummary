@@ -1,19 +1,15 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using RegistrationSummary.Common.Services;
+using RegistrationSummary.Common.Services.Base;
 using System.Reflection;
 using System.Text.Json;
 
-public class FileService
+public class FileService : UserContextServiceOwner
 {
-	public string UserFolderName { get; set; }
-	public string BasePath =>
-		!string.IsNullOrEmpty(UserFolderName)
-			? Path.Combine("C:/RegistrationSummary", UserFolderName)
-			: " "; 
-
-	public FileService(IConfiguration configuration)
+	public FileService(UserContextService userContext)
+		: base(userContext)
 	{ }
 
-	public T Load<T>(string filename)
+    public T Load<T>(string filename)
 	{
 		var fullPath = Path.Combine(BasePath, filename);
 

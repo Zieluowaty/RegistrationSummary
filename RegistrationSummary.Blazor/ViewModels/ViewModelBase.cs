@@ -19,7 +19,7 @@ public class ViewModelBase : INotifyPropertyChanged
 
     // === Dependencies ===
     private readonly ILogger<MainPageViewModel> _logger;
-    private readonly FileLoggerService _fileLogger;
+    private readonly UserContextService _userContextService;
     private readonly IJSRuntime _jsRuntime;
     private readonly NavigationManager _navigationManager;
     private readonly ToastService _toastService;
@@ -27,13 +27,13 @@ public class ViewModelBase : INotifyPropertyChanged
     // === Constructor ===
     public ViewModelBase(
         ILogger<MainPageViewModel> logger,
-        FileLoggerService fileLoggerService,
+        UserContextService userContextService,
         IJSRuntime jsRuntime,
         NavigationManager navigationManager,
         ToastService toastService)
     {
         _logger = logger;
-        _fileLogger = fileLoggerService;
+        _userContextService = userContextService;
         _jsRuntime = jsRuntime;
         _navigationManager = navigationManager;
         _toastService = toastService;
@@ -82,7 +82,7 @@ public class ViewModelBase : INotifyPropertyChanged
         if (level > LogLevel.Warning && ex != null)
         {
             _logger.LogError(ex, $"{level} during {methodName}");
-            _fileLogger.LogError(ex, $"{level} during {methodName}");
+            _userContextService.FileLoggerService.LogError(ex, $"{level} during {methodName}");
             ShowToast($"Error occured, check the logs");
         }
 

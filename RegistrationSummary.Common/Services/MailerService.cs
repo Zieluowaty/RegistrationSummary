@@ -1,5 +1,4 @@
-﻿// Services/MailerService.cs
-using MailKit.Net.Smtp;
+﻿using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using RegistrationSummary.Common.Configurations;
@@ -42,11 +41,13 @@ public class MailerService
         using var client = new SmtpClient();
         try
         {
-            client.Connect(_serverName, _serverPort, SecureSocketOptions.Auto);
+            client.CheckCertificateRevocation = false;
+
+            client.Connect(_serverName, _serverPort, SecureSocketOptions.SslOnConnect);
             client.Authenticate(_mail, _password);
             client.Disconnect(true);
         }
-        catch
+        catch (Exception ex)
         {
             return false;
         }

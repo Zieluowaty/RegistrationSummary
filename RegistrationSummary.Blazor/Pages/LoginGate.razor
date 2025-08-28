@@ -18,8 +18,17 @@
             if (!isLoginPage)
             {
                 showNotice = true;
-                //Navigation.NavigateTo("/login", forceLoad: true);
             }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (showNotice)
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+
+            StateHasChanged();
         }
     }
 }

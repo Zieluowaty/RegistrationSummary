@@ -1,11 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Text;
-using Google.Apis.Sheets.v4;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using RegistrationSummary.Blazor.Services;
-using RegistrationSummary.Common.Configurations;
 using RegistrationSummary.Common.Enums;
 using RegistrationSummary.Common.Models;
 using RegistrationSummary.Common.Services;
@@ -16,13 +14,10 @@ namespace RegistrationSummary.Blazor.ViewModels;
 
 public class MainPageViewModel : ViewModelBase
 {
-    private readonly EventService _eventService;
-    private readonly ExcelService _excelService;
-    private readonly MailerService _mailerService;
-    private readonly SheetsService _googleSheetsService;
-    
-    private readonly SettingConfiguration _settings;
-    
+    private readonly UserContextService _userContextService;
+
+    private bool _eventsLoaded = false;
+
     public ObservableCollection<Event> Events { get; private set; } = new();
     public bool CanEditSelected => SelectedEvent is not null;
 
@@ -57,27 +52,24 @@ public class MainPageViewModel : ViewModelBase
     }
 
     public MainPageViewModel(
-        EventService eventService,
-        ExcelService excelService,
-        SheetsService googleSheetsService,
-        MailerService mailerService,
-        SettingConfiguration settings,
-        FileLoggerService fileLoggerService,
+        UserContextService userContextService,
         ILogger<MainPageViewModel> logger,
         IJSRuntime jsRuntime,
         NavigationManager navigationManager,
         ToastService toastService)
-        : base(logger, fileLoggerService, jsRuntime, navigationManager, toastService)
+        : base(logger, userContextService, jsRuntime, navigationManager, toastService)
     {
-        _eventService = eventService;
-        _excelService = excelService;
-        _googleSheetsService = googleSheetsService;
-        _mailerService = mailerService;
-        _settings = settings;
+        _userContextService = userContextService;
+    }
+
+    public void Initialize()
+    {
+        if (string.IsNullOrEmpty(_userContextService?.Username))
+            return;
 
         LoadEvents();
 
-        if (!_mailerService.IsConnectionSuccessful())
+        if (!_userContextService.MailerService.IsConnectionSuccessful())
         {
             AddLog("Mail server connection failed. Please check your settings.", null, LogLevel.Error);
             ShowToast("Mail server connection failed. Please check your settings.");
@@ -91,10 +83,12 @@ public class MainPageViewModel : ViewModelBase
     private void LoadEvents()
     {
         Events.Clear();
-        foreach (var ev in _eventService.GetAll())
+        foreach (var ev in _userContextService.EventService.GetAll())
         {
             Events.Add(ev);
         }
+
+        _eventsLoaded = true;
     }
 
     public async Task CloneSelectedEventAsync()
@@ -107,13 +101,13 @@ public class MainPageViewModel : ViewModelBase
             return;
 
         var clone = SelectedEvent.Clone();
-        clone.Id = _eventService.GenerateNextId();
+        clone.Id = _userContextService.EventService.GenerateNextId();
         clone.Name += " (CLONE)";
 
         Events.Add(clone);
         SelectedEvent = clone;
 
-        _eventService.SaveAll(Events.ToList());
+        _userContextService.EventService.SaveAll(Events.ToList());
 
         AddLog($"Event cloned: {clone.Name}", null, LogLevel.Info);
 
@@ -127,7 +121,7 @@ public class MainPageViewModel : ViewModelBase
 
         AddLog($"Event \"{SelectedEvent?.Name}\" has been updated.");
 
-        _eventService.SaveAll(Events.ToList());
+        _userContextService.EventService.SaveAll(Events.ToList());
     }
 
     public void SelectEvent(string eventName)
@@ -137,16 +131,16 @@ public class MainPageViewModel : ViewModelBase
         if (SelectedEvent == null)
             return;
 
-        _excelService.Initialize(
+        _userContextService.ExcelService.Initialize(
             SelectedEvent,
-            _settings.RawDataTabName,
-            _settings.PreprocessedDataTabName,
-            _settings.SummaryTabName,
-            _settings.GroupBalanceTabName,
-            _settings.LeaderText,
-            _settings.FollowerText,
-            _settings.SoloText,
-            _settings.Prices
+            _userContextService.SettingConfiguration.RawDataTabName,
+            _userContextService.SettingConfiguration.PreprocessedDataTabName,
+            _userContextService.SettingConfiguration.SummaryTabName,
+            _userContextService.SettingConfiguration.GroupBalanceTabName,
+            _userContextService.SettingConfiguration.LeaderText,
+            _userContextService.SettingConfiguration.FollowerText,
+            _userContextService.SettingConfiguration.SoloText,
+            _userContextService.SettingConfiguration.Prices
         );
 
         UpdateSignupEligibility();
@@ -163,7 +157,7 @@ public class MainPageViewModel : ViewModelBase
         {
             AddLog($"Checking spreadsheet for event: {SelectedEvent.Name}");
 
-            var spreadsheet = _googleSheetsService
+            var spreadsheet = _userContextService.SheetsService
                 .Spreadsheets.Get(SelectedEvent.SpreadsheetId)
                 .Execute();
 
@@ -174,7 +168,7 @@ public class MainPageViewModel : ViewModelBase
             }
 
             if (!spreadsheet.Sheets.Any(sheet =>
-                    sheet.Properties.Title.Equals(_settings.RawDataTabName, StringComparison.OrdinalIgnoreCase)))
+                    sheet.Properties.Title.Equals(_userContextService.SettingConfiguration.RawDataTabName, StringComparison.OrdinalIgnoreCase)))
             {
                 AddLog("No raw data tab found in spreadsheet.");
                 return;
@@ -182,7 +176,7 @@ public class MainPageViewModel : ViewModelBase
 
             AddLog("Validation passed. Generating tabs...");
 
-            await Task.Run(() => _excelService.GenerateTabs(SelectedEvent));
+            await Task.Run(() => _userContextService.ExcelService.GenerateTabs(SelectedEvent));
 
             UpdateSignupEligibility();
 
@@ -203,7 +197,7 @@ public class MainPageViewModel : ViewModelBase
         {
             try
             {
-                await Task.Run(() => _excelService.ClearExcel());
+                await Task.Run(() => _userContextService.ExcelService.ClearExcel());
 
                 UpdateSignupEligibility();
 
@@ -234,7 +228,7 @@ public class MainPageViewModel : ViewModelBase
             try
             {
                 AddLog($"{(isTest ? "[TEST] " : "")}Preparing student data...");
-                var students = _excelService.GetStudentsFromRegularSemestersSheet();
+                var students = _userContextService.ExcelService.GetStudentsFromRegularSemestersSheet();
 
                 if (!students.Any())
                 {
@@ -248,7 +242,7 @@ public class MainPageViewModel : ViewModelBase
                 Dictionary<EmailType, int> summary;
                 if (type == EmailType.All)
                 {
-                    summary = _mailerService.GetEmailCountsPerType(students)
+                    summary = _userContextService.MailerService.GetEmailCountsPerType(students)
                         .Where(kvp => kvp.Value > 0)
                         .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
@@ -261,7 +255,7 @@ public class MainPageViewModel : ViewModelBase
                 }
                 else
                 {
-                    var count = _mailerService.GetPendingRecipientsOfType(students, type).Count;
+                    var count = _userContextService.MailerService.GetPendingRecipientsOfType(students, type).Count;
                     if (count == 0)
                     {
                         AddLog($"No '{type}' emails to send.");
@@ -289,13 +283,13 @@ public class MainPageViewModel : ViewModelBase
 
                 if (type == EmailType.All)
                 {
-                    await Task.Run(() => _mailerService.PrepareAndSendEmailsForRegularSemesters(students, isTest, msg => AddLog(msg)));
+                    await Task.Run(() => _userContextService.MailerService.PrepareAndSendEmailsForRegularSemesters(students, isTest, msg => AddLog(msg)));
                     AddLog("Sending emails ended.");
                     ShowToast("Sending emails ended");
                 }
                 else
                 {
-                    await Task.Run(() => _mailerService.SendEmailsOfType(students, type, isTest, msg => AddLog(msg)));
+                    await Task.Run(() => _userContextService.MailerService.SendEmailsOfType(students, type, isTest, msg => AddLog(msg)));
                     AddLog($"Sending {type} emails ended.");
                     ShowToast($"Sending {type} emails ended");
                 }
@@ -327,7 +321,7 @@ public class MainPageViewModel : ViewModelBase
             try
             {
                 AddLog("Searching for new registrations...");
-                await Task.Run(() => _excelService.PopulateRegistrationTabForAggregatedData());
+                await Task.Run(() => _userContextService.ExcelService.PopulateRegistrationTabForAggregatedData());
                 AddLog("New signups populated successfully. It can take few seconds for Google Sheet to reload. Be patient.");
                 ShowToast("New signups populated successfully.");
             }
@@ -346,12 +340,13 @@ public class MainPageViewModel : ViewModelBase
     {
         try
         {
-            var spreadsheet = _googleSheetsService.Spreadsheets
+            var spreadsheet = _userContextService.SheetsService
+                .Spreadsheets
                 .Get(SelectedEvent?.SpreadsheetId)
                 .Execute();
 
             CanPopulateNewSignups = spreadsheet.Sheets
-                .Any(sheet => sheet.Properties.Title == _settings.PreprocessedDataTabName);
+                .Any(sheet => sheet.Properties.Title == _userContextService.SettingConfiguration.PreprocessedDataTabName);
         }
         catch (Exception ex)
         {

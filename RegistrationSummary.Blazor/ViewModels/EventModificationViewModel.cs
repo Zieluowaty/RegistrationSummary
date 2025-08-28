@@ -16,8 +16,8 @@ namespace RegistrationSummary.Blazor.ViewModels;
 public class EventModificationPageViewModel : ViewModelBase
 {
     private readonly MainPageViewModel _mainVm; 
-    private readonly SheetsService _sheetsService;
-    private readonly EventService _eventService;
+
+    private readonly UserContextService _userContextService;
 
     public Event? Event { get; private set; }
 
@@ -59,17 +59,14 @@ public class EventModificationPageViewModel : ViewModelBase
     public EventModificationPageViewModel(
         MainPageViewModel mainVm,
         NavigationManager navigationManager,
-        SheetsService sheetsService,
-        EventService eventService,
+        UserContextService userContextService,
         IJSRuntime jsRuntime,
         ToastService toastService,
-        FileLoggerService fileLoggerService,
         ILogger<MainPageViewModel> logger)
-        : base(logger, fileLoggerService, jsRuntime, navigationManager, toastService)
+        : base(logger, userContextService, jsRuntime, navigationManager, toastService)
     {
         _mainVm = mainVm;
-        _sheetsService = sheetsService;
-        _eventService = eventService;
+        _userContextService = userContextService;
     }
 
     public void Initialize(int? eventId)
@@ -79,7 +76,7 @@ public class EventModificationPageViewModel : ViewModelBase
             // new event
             Event = new Event
             {
-                Id = _eventService.GenerateNextId(),
+                Id = _userContextService.EventService.GenerateNextId(),
                 Name = "",
                 Courses = new(),
                 RawDataColumns = new(),
@@ -92,7 +89,7 @@ public class EventModificationPageViewModel : ViewModelBase
         }
 
         // editing existing
-        var found = _eventService.GetById(eventId.Value);
+        var found = _userContextService.EventService.GetById(eventId.Value);
         if (found is null)
         {
             ShowToast("Failed to load the event.");
@@ -146,7 +143,7 @@ public class EventModificationPageViewModel : ViewModelBase
     {
         try
         {
-            var request = _sheetsService.Spreadsheets.Get(Event.SpreadsheetId);
+            var request = _userContextService.SheetsService.Spreadsheets.Get(Event.SpreadsheetId);
             var spreadsheet = await request.ExecuteAsync();
 
             if (spreadsheet.SpreadsheetId != Event.SpreadsheetId)

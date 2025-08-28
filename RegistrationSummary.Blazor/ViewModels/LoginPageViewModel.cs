@@ -8,8 +8,9 @@ using System.Text.RegularExpressions;
 public class LoginPageViewModel : ViewModelBase
 {
     private readonly AuthenticationService _authService;
-    private readonly NavigationManager _navigation;
-    private readonly FileService _fileService;
+
+    private readonly UserContextService _userContextService;
+    private readonly MainPageViewModel _mainPageViewModel;
 
     public string Username { get; set; } = "";
     public string Password { get; set; } = "";
@@ -21,17 +22,18 @@ public class LoginPageViewModel : ViewModelBase
 
     public LoginPageViewModel(
         ILogger<MainPageViewModel> logger,
-        FileLoggerService fileLoggerService,
+        UserContextService userContextService,
         IJSRuntime jsRuntime, 
         AuthenticationService authService, 
         NavigationManager navigation, 
-        ToastService toast,
-        FileService fileService)
-        : base(logger, fileLoggerService, jsRuntime, navigation, toast)
+        ToastService toast, 
+        MainPageViewModel mainPageViewModel)
+        : base(logger, userContextService, jsRuntime, navigation, toast)
     {
         _authService = authService;
-        _navigation = navigation;
-        _fileService = fileService;
+
+        _userContextService = userContextService;
+        _mainPageViewModel = mainPageViewModel;
     }
 
     public async Task TryLoginAsync()
@@ -43,7 +45,9 @@ public class LoginPageViewModel : ViewModelBase
             {
                 if (await _authService.LoginAsync(Username, Password))
                 {
-                    _fileService.UserFolderName = Username;
+                    _userContextService.Username = Username;
+
+                    _mainPageViewModel.Initialize();
                     NavigateTo("/");
                 }
                 else
