@@ -13,7 +13,7 @@ namespace RegistrationSummary.Common.Services;
 
 public class ExcelService
 {
-    private readonly int MAX_ROWS = 200;
+    private readonly int MAX_ROWS = 1000;
     public readonly int ROW_STARTING_INDEX = 6;
 
     public SheetsService SheetService;

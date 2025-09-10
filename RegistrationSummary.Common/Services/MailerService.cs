@@ -174,6 +174,8 @@ public class MailerService
         {
             try
             {
+                client.CheckCertificateRevocation = false;
+
                 client.Connect(_serverName, _serverPort, SecureSocketOptions.Auto);
                 client.Authenticate(_mail, _password);
 
