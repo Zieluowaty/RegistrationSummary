@@ -56,8 +56,8 @@ public class MailerService
     }
 
     public void PrepareAndSendEmailsForRegularSemesters(
-        List<Student> students, 
-        bool isTest, 
+        List<Student> students,
+        bool isTest,
         Action<string>? log = null)
     {
         SendEmailsOfType(students, EmailType.Confirmation, isTest, log);
@@ -68,22 +68,27 @@ public class MailerService
     }
 
     public void SendEmailsOfType(
-        List<Student> students, 
-        EmailType status, 
-        bool isTest, 
+        List<Student> students,
+        EmailType status,
+        bool isTest,
         Action<string>? log = null)
 
     {
         foreach (var student in GetPendingRecipientsOfType(students, status))
         {
-            var email = PrepareEmail(student, status);
-            if (email == null)
-                continue;
-
             try
             {
+                var email = PrepareEmail(student, status);
+
+                if (email == null)
+                    continue;
+
                 SendEmail(email, isTest);
                 MarkMailAsSent(student, status);
+            }
+            catch (FormatException ex)
+            {
+                log?.Invoke(ex.Message);
             }
             catch (Exception ex)
             {
@@ -108,6 +113,11 @@ public class MailerService
         var emailTemplate = _emailsTemplates.FirstOrDefault(email => email.Name.Equals(emailType.ToString()));
         if (emailTemplate == null)
             return null;
+
+        if (string.IsNullOrWhiteSpace(student.Email) || !MailboxAddress.TryParse(student.Email, out var mailbox))
+        {
+            throw new FormatException($"Invalid email address: '{student.Email}' for student {student.FirstName} {student.LastName}");
+        }
 
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(_mail, _mail));
