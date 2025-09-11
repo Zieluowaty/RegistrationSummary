@@ -175,7 +175,7 @@ public class MailerConverter
                 return "Poniedziałek";
             case "Tuesday":
                 return "Wtorek";
-            case "Wendesday":
+            case "Wednesday":
                 return "Środa";
             case "Thursday":
                 return "Czwartek";
@@ -186,7 +186,7 @@ public class MailerConverter
             case "Sunday":
                 return "Niedziela";
             default:
-                return "Błąd";
+                return dayOfWeek;
         }
 	}
 }
