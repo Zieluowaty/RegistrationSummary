@@ -113,7 +113,7 @@ public class MailerConverter
     {
         if (student.Courses?.Any(course => !course.IsSolo) ?? false)
         {
-            // Remowe only <COUPLE> marks if student want to pay in installments.
+            // Remowe only <COUPLE> marks if the course IsSolo = False.
             output =
                 output
                 .Replace("<COUPLE>", string.Empty)
@@ -121,7 +121,7 @@ public class MailerConverter
         }
         else
         {
-            // Remove all texts inside of <COUPLE> marks if student wants to pay normal.
+            // Remove all texts inside of <COUPLE> marks if course IsSolo = True.
             string pattern = @"<COUPLE>.*?</COUPLE>";
             output = Regex.Replace(output, pattern, string.Empty);
         }
