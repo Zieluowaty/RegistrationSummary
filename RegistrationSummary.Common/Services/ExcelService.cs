@@ -290,13 +290,13 @@ public class ExcelService
 			// ALL REGISTRATIONS
 			AddFormula(sheetId,
                 $"{_groupBalanceTabName}!B{rowIndex}", 
-				$"=COUNTIFS({_preprocessedDataTabName}!${courseColumn}$2:${courseColumn}; $A{rowIndex}; {_preprocessedDataTabName}!${roleColumn}$2:${roleColumn}; $B$1; {_preprocessedDataTabName}!${acceptedColumn}$2:${acceptedColumn}; \"<>'X'\")");
+				$"=COUNTIFS({_preprocessedDataTabName}!${courseColumn}$2:${courseColumn}; $A{rowIndex}; {_preprocessedDataTabName}!${roleColumn}$2:${roleColumn}; $B$1; {_preprocessedDataTabName}!${acceptedColumn}$2:${acceptedColumn}; \"<>X\")");
             AddFormula(sheetId,
                 $"{_groupBalanceTabName}!C{rowIndex}",
-                $"=COUNTIFS({_preprocessedDataTabName}!${courseColumn}$2:${courseColumn}; $A{rowIndex}; {_preprocessedDataTabName}!${roleColumn}$2:${roleColumn}; $C$1; {_preprocessedDataTabName}!${acceptedColumn}$2:${acceptedColumn}; \"<>'X'\")");
+                $"=COUNTIFS({_preprocessedDataTabName}!${courseColumn}$2:${courseColumn}; $A{rowIndex}; {_preprocessedDataTabName}!${roleColumn}$2:${roleColumn}; $C$1; {_preprocessedDataTabName}!${acceptedColumn}$2:${acceptedColumn}; \"<>X\")");
             AddFormula(sheetId,
                 $"{_groupBalanceTabName}!D{rowIndex}",
-                $"=COUNTIFS({_preprocessedDataTabName}!${courseColumn}$2:${courseColumn}; $A{rowIndex}; {_preprocessedDataTabName}!${roleColumn}$2:${roleColumn}; $D$1; {_preprocessedDataTabName}!${acceptedColumn}$2:${acceptedColumn}; \"<>'X'\")");
+                $"=COUNTIFS({_preprocessedDataTabName}!${courseColumn}$2:${courseColumn}; $A{rowIndex}; {_preprocessedDataTabName}!${roleColumn}$2:${roleColumn}; $D$1; {_preprocessedDataTabName}!${acceptedColumn}$2:${acceptedColumn}; \"<>X\")");
             AddFormula(sheetId,
                 $"{_groupBalanceTabName}!E{rowIndex}",
                 $"=SUM(B{rowIndex}:D{rowIndex})");
