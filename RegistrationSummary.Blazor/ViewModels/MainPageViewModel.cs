@@ -51,6 +51,28 @@ public class MainPageViewModel : ViewModelBase
         }
     }
 
+    private bool _isEmailEditorVisible;
+    public bool IsEmailEditorVisible
+    {
+        get => _isEmailEditorVisible;
+        set
+        {
+            _isEmailEditorVisible = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private string? _emailTemplatesContent;
+    public string? EmailTemplatesContent
+    {
+        get => _emailTemplatesContent;
+        set
+        {
+            _emailTemplatesContent = value;
+            OnPropertyChanged();
+        }
+    }
+
     public MainPageViewModel(
         UserContextService userContextService,
         ILogger<MainPageViewModel> logger,
@@ -371,4 +393,42 @@ public class MainPageViewModel : ViewModelBase
             .OrderBy(c => DayOrder.FirstOrDefault(day => day.Key == c.DayOfWeek).Value)
             .ThenBy(c => c.Time)
             ?? Enumerable.Empty<Course>();
+
+    public void OpenEmailEditor()
+    {
+        var filePath = Path.Combine(_userContextService.FileService.BasePath, "Emails.json");
+        if (!File.Exists(filePath))
+        {
+            AddLog($"Emails.json file not found.",
+                    null,
+                    LogLevel.Error,
+                    MethodBase.GetCurrentMethod()?.Name ?? "OpenEmailEditor");
+            ShowToast("Emails.json file not found.");
+            return;
+        }
+
+        EmailTemplatesContent = File.ReadAllText(filePath);
+
+        IsEmailEditorVisible = true;
+    }
+
+    public void SaveEmailTemplates()
+    {
+        if (EmailTemplatesContent != null)
+        {
+            var filePath = Path.Combine(_userContextService.FileService.BasePath, "Emails.json");
+            File.WriteAllText(filePath, EmailTemplatesContent);
+            ShowToast("Templates saved.");
+        }
+
+        AddLog("Emails.json was saved successfully.");
+        ShowToast("Emails.json was saved successfully.");
+
+        IsEmailEditorVisible = false;
+    }
+
+    public void CloseEmailEditor()
+    {
+        IsEmailEditorVisible = false;
+    }
 }

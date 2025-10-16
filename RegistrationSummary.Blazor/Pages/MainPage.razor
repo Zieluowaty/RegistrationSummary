@@ -165,6 +165,24 @@ else
                     </div>
                 </div>
             }
+
+            @if (!Vm.IsEmailEditorVisible)
+            {
+                <button class="btn btn-secondary" @onclick="Vm.OpenEmailEditor">Open Email Templates Editor</button>
+            }
+            else
+            {
+                <div class="mb-4">
+                    <label class="font-bold block mb-2">Email Templates Editor</label>
+                    <textarea class="w-full h-96 border p-2 font-mono text-sm"
+                              @bind="Vm.EmailTemplatesContent"></textarea>
+
+                    <div class="flex gap-2 mt-2">
+                        <button class="btn btn-primary" @onclick="Vm.SaveEmailTemplates">Save</button>
+                        <button class="btn btn-outline" @onclick="Vm.CloseEmailEditor">Close</button>
+                    </div>
+                </div>
+            }
     </div>
         </div>
 

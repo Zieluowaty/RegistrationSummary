@@ -191,7 +191,7 @@ public class ExcelService
 
 		if ((preprocessedValues?.Count ?? 0) == 0)
 		{
-			AddFormula(preprocessedSheetId.Value, $"{_preprocessedDataTabName}!{SelectedEvent?.PreprocessedColumns.Login}1", $"=\"login\"");
+			AddFormula(preprocessedSheetId.Value, $"{_preprocessedDataTabName}!{SelectedEvent?.PreprocessedColumns.Login}1", $"=\"Login\"");
 			AddFormula(preprocessedSheetId.Value, $"{_preprocessedDataTabName}!{SelectedEvent?.PreprocessedColumns.Email}1", $"=\"Email\"");
 			AddFormula(preprocessedSheetId.Value, $"{_preprocessedDataTabName}!{SelectedEvent?.PreprocessedColumns.FirstName}1", $"=\"First name\"");
 			AddFormula(preprocessedSheetId.Value, $"{_preprocessedDataTabName}!{SelectedEvent?.PreprocessedColumns.LastName}1", $"=\"Last name\"");
@@ -934,7 +934,7 @@ public class ExcelService
 		);
 
 		var headersColumns = GetColumnsHeadersInTab(_preprocessedDataTabName);
-		var loginColumnIndex = ColumnNameToIndex(headersColumns.Single(header => header.Header.Equals("login")).ColumnName);
+		var loginColumnIndex = ColumnNameToIndex(headersColumns.Single(header => header.Header.Equals("Login")).ColumnName);
 		var courseColumnIndex = ColumnNameToIndex(headersColumns.Single(header => header.Header.Equals("Course")).ColumnName);
 		var acceptedColumnIndex = ColumnNameToIndex(headersColumns.Single(header => header.Header.Equals("Accepted")).ColumnName);
 
