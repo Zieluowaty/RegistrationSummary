@@ -951,6 +951,15 @@ public class ExcelService
 		);
 
 		var headersColumns = GetColumnsHeadersInTab(_preprocessedDataTabName);
+
+		var headersColumnsExpected = new string[] {"Login", "Course", "Accepted", "Confirmation", "Waiting List", "Not Enough People", "Full Class", "Missing Partner"};
+
+		foreach(var header in headersColumnsExpected)
+		{
+			if (!headersColumns.Where(x => x.Header.Equals(header)).Any())
+				throw new Exception($"Cannot find column \"{header}\" in tab \"{_preprocessedDataTabName}\". Check the tab for this column. Names are case sensitive!");
+		}
+
 		var loginColumnIndex = ColumnNameToIndex(headersColumns.Single(header => header.Header.Equals("Login")).ColumnName);
 		var courseColumnIndex = ColumnNameToIndex(headersColumns.Single(header => header.Header.Equals("Course")).ColumnName);
 		var acceptedColumnIndex = ColumnNameToIndex(headersColumns.Single(header => header.Header.Equals("Accepted")).ColumnName);
