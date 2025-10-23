@@ -3,6 +3,7 @@ using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using RegistrationSummary.Common.Configurations;
 using RegistrationSummary.Common.Models;
+using RegistrationSummary.Common.Services.Interfaces;
 
 namespace RegistrationSummary.Common.Services;
 
@@ -23,6 +24,8 @@ public class UserContextService
     public MailerService? MailerService { get; set; }
 
     public FileLoggerService? FileLoggerService { get; set; }
+
+    public ILogMessenger LogMessenger { get; set; }
 
 
     private string? _username;
@@ -50,7 +53,7 @@ public class UserContextService
             }
 
             EventService = new EventService(FileService);
-            ExcelService = new ExcelService(SheetsService);
+            ExcelService = new ExcelService(SheetsService, LogMessenger);
             MailerService = new MailerService(SettingConfiguration.MailerConfiguration, ExcelService, EmailsTemplates);
             FileLoggerService = new FileLoggerService(SettingConfiguration, FileService);
         }

@@ -60,7 +60,7 @@ public class ViewModelBase : INotifyPropertyChanged
     public Action? OnLogUpdated { get; set; }
 
     // === Logging & Messaging ===
-    protected void AddLog(string message, Exception? ex = null, LogLevel level = LogLevel.Info, string methodName = "")
+    public void AddLog(string message, Exception? ex = null, LogLevel level = LogLevel.Info, string methodName = "")
     {
         var colorClass = level switch
         {
@@ -82,7 +82,7 @@ public class ViewModelBase : INotifyPropertyChanged
         if (level > LogLevel.Warning && ex != null)
         {
             _logger.LogError(ex, $"{level} during {methodName}");
-            _userContextService.FileLoggerService.LogError(ex, $"{level} during {methodName}");
+            _userContextService.FileLoggerService.LogError(ex, $"{level} during {methodName}\n{message}");
             ShowToast($"Error occured, check the logs");
         }
 

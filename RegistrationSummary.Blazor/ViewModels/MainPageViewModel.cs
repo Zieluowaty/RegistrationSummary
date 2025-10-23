@@ -82,6 +82,8 @@ public class MainPageViewModel : ViewModelBase
         : base(logger, userContextService, jsRuntime, navigationManager, toastService)
     {
         _userContextService = userContextService;
+
+        _userContextService.LogMessenger = new LogMessenger(this);
     }
 
     public void Initialize()

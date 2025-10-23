@@ -1,13 +1,13 @@
-using System.Text;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
-using System.Text.RegularExpressions;
-using System.Globalization;
-
+using RegistrationSummary.Common.Enums;
 using RegistrationSummary.Common.Models;
 using RegistrationSummary.Common.Models.Bases;
-using RegistrationSummary.Common.Enums;
+using RegistrationSummary.Common.Services.Interfaces;
 using RegistrationSummary.Common.Styles;
+using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace RegistrationSummary.Common.Services;
 
@@ -17,6 +17,9 @@ public class ExcelService
     public readonly int ROW_STARTING_INDEX = 6;
 
     public SheetsService SheetService;
+
+    private readonly ILogMessenger _logMessenger;
+
     public string SpreadSheetId => SelectedEvent?.SpreadsheetId ?? string.Empty;
     public Event? SelectedEvent;
 
@@ -51,9 +54,10 @@ public class ExcelService
         }
     }
 
-    public ExcelService(SheetsService sheetService)
+    public ExcelService(SheetsService sheetService, ILogMessenger logMessenger)
     {
         SheetService = sheetService;
+        _logMessenger = logMessenger;
     }
 
     public void Initialize(Event selectedEvent, string rawDataTabName, string preprocessedDataTabName, string summaryTabName,
@@ -812,109 +816,122 @@ public class ExcelService
 			if (string.IsNullOrEmpty(email))
 				continue;
 
-			var newStudent =
-				new Student
+			try
+			{
+				var newStudent =
+					new Student
+					{
+						Id = rowId++,
+						Email = email,
+						FirstName = row[firstNameColumnIndex]?.ToString()?.Trim() ?? string.Empty,
+						LastName = row[lastNameColumnIndex]?.ToString()?.Trim() ?? string.Empty,
+						PaymentAmount = int.Parse(row[ColumnNameToIndex(installmentSumColumn) + 1]?.ToString()?.Replace(" zł", "")?.Replace(" ", "") ?? "0"),
+						Installments = (row[installmentColumnIndex]?.ToString()?.Trim() ?? string.Empty).Equals("1"),
+						Courses = SelectedEvent?.Courses
+							.Where(
+								course =>
+									(row[coursesColumnIndex]?.ToString() ?? string.Empty)
+										.Split(",", StringSplitOptions.RemoveEmptyEntries)
+										.Select(name => name.Trim())
+										.Any(
+											name =>
+												name.Contains(
+													course.Name,
+													StringComparison.OrdinalIgnoreCase
+												)
+										)
+							)
+							.Select(product => (Course)product)
+							.Select(course => new Course()
+							{
+								Type = course.Type,
+								Name = course.Name,
+								Code = course.Code,
+								Start = course.Start,
+								End = course.End,
+								DayOfWeek = course.DayOfWeek,
+								Time = course.Time,
+								Location = course.Location,
+								AdditionalComment = course.AdditionalComment,
+								IsSolo = course.IsSolo
+							})
+							.ToList()
+					};
+			
+				if (row.Count > confirmationEmailSentColumn && !string.IsNullOrEmpty(row[confirmationEmailSentColumn].ToString()))
 				{
-					Id = rowId++,
-					Email = email,
-					FirstName = row[firstNameColumnIndex]?.ToString()?.Trim() ?? string.Empty,
-					LastName = row[lastNameColumnIndex]?.ToString()?.Trim() ?? string.Empty,
-					PaymentAmount = int.Parse(row[ColumnNameToIndex(installmentSumColumn) + 1]?.ToString()?.Replace(" zł", "")?.Replace(" ", "") ?? "0"),
-					Installments = (row[installmentColumnIndex]?.ToString()?.Trim() ?? string.Empty).Equals("1"),
-					Courses = SelectedEvent?.Courses
-						.Where(
-							course =>
-								(row[coursesColumnIndex]?.ToString() ?? string.Empty)										
-									.Split(",", StringSplitOptions.RemoveEmptyEntries)
-									.Select(name => name.Trim())
-									.Any(
-										name =>
-											name.Contains(
-												course.Name,
-												StringComparison.OrdinalIgnoreCase
-											)
-									)
-						)
-						.Select(product => (Course)product)
-						.Select(course => new Course()
-						{
-							Type = course.Type,
-							Name = course.Name,
-							Code = course.Code,
-							Start = course.Start,
-							End = course.End,
-							DayOfWeek = course.DayOfWeek,
-							Time = course.Time,
-							Location = course.Location,
-							AdditionalComment = course.AdditionalComment,
-							IsSolo = course.IsSolo
-						})
-						.ToList()
-				};
-
-			if (row.Count > confirmationEmailSentColumn && !string.IsNullOrEmpty(row[confirmationEmailSentColumn].ToString()))
-			{
-				newStudent.AlreadySentEmails.Add(EmailType.Confirmation);
-			}
-
-			if (row.Count > waitingListEmailSentColumn && !string.IsNullOrEmpty(row[waitingListEmailSentColumn].ToString()))
-			{
-				newStudent.AlreadySentEmails.Add(EmailType.WaitingList);
-			}
-
-			if (row.Count > notEnoughPeopleEmailSentColumn && !string.IsNullOrEmpty(row[notEnoughPeopleEmailSentColumn].ToString()))
-			{
-				newStudent.AlreadySentEmails.Add(EmailType.NotEnoughPeople);
-			}
-
-			if (row.Count > fullClassEmailSentColumn && !string.IsNullOrEmpty(row[fullClassEmailSentColumn].ToString()))
-			{
-				newStudent.AlreadySentEmails.Add(EmailType.FullClass);
-			}
-
-			if (row.Count > missingPartnerEmailSentColumn && !string.IsNullOrEmpty(row[missingPartnerEmailSentColumn].ToString()))
-			{
-				newStudent.AlreadySentEmails.Add(EmailType.MissingPartner);
-			}
-
-			foreach (var course in courseColumns)
-			{
-				var foundCourse =
-					newStudent
-						.Courses?
-						.SingleOrDefault(studentCourse => studentCourse.Code.Equals(course.CourseCode));
-
-				if (foundCourse == null)
-					continue;
-
-				var value = row[ColumnNameToIndex(course.ColumnName)]?.ToString() ?? string.Empty;
-
-				switch (value.ToLower())
-				{
-					case "1":
-						foundCourse.Status = EmailType.Confirmation;
-						break;
-
-					case "w":
-						foundCourse.Status = EmailType.WaitingList;
-						break;
-
-					case "nep":
-						foundCourse.Status = EmailType.NotEnoughPeople;
-						break;
-
-					case "fc":
-						foundCourse.Status = EmailType.FullClass;
-						break;
-
-					case "bp":
-						foundCourse.Status = EmailType.MissingPartner;
-						break;
+					newStudent.AlreadySentEmails.Add(EmailType.Confirmation);
 				}
-			}
 
-			students.Add(newStudent);
-		}
+				if (row.Count > waitingListEmailSentColumn && !string.IsNullOrEmpty(row[waitingListEmailSentColumn].ToString()))
+				{
+					newStudent.AlreadySentEmails.Add(EmailType.WaitingList);
+				}
+
+				if (row.Count > notEnoughPeopleEmailSentColumn && !string.IsNullOrEmpty(row[notEnoughPeopleEmailSentColumn].ToString()))
+				{
+					newStudent.AlreadySentEmails.Add(EmailType.NotEnoughPeople);
+				}
+
+				if (row.Count > fullClassEmailSentColumn && !string.IsNullOrEmpty(row[fullClassEmailSentColumn].ToString()))
+				{
+					newStudent.AlreadySentEmails.Add(EmailType.FullClass);
+				}
+
+				if (row.Count > missingPartnerEmailSentColumn && !string.IsNullOrEmpty(row[missingPartnerEmailSentColumn].ToString()))
+				{
+					newStudent.AlreadySentEmails.Add(EmailType.MissingPartner);
+				}
+
+				foreach (var course in courseColumns)
+				{
+					var foundCourse =
+						newStudent
+							.Courses?
+							.SingleOrDefault(studentCourse => studentCourse.Code.Equals(course.CourseCode));
+
+					if (foundCourse == null)
+						continue;
+
+					var value = row[ColumnNameToIndex(course.ColumnName)]?.ToString() ?? string.Empty;
+
+					switch (value.ToLower())
+					{
+						case "1":
+							foundCourse.Status = EmailType.Confirmation;
+							break;
+
+						case "w":
+							foundCourse.Status = EmailType.WaitingList;
+							break;
+
+						case "nep":
+							foundCourse.Status = EmailType.NotEnoughPeople;
+							break;
+
+						case "fc":
+							foundCourse.Status = EmailType.FullClass;
+							break;
+
+						case "bp":
+							foundCourse.Status = EmailType.MissingPartner;
+							break;
+					}
+				}
+
+				students.Add(newStudent);
+            }
+            catch (Exception ex)
+            {				
+                _logMessenger.LogMessage(
+					$"Could not read student: {string.Join(", ", row)}",
+					ex,
+                    LogLevel.Error,
+					nameof(GetStudentsFromRegularSemestersSheet)
+                );
+                continue;
+            }
+        }
 
 		students = students
 			.Where(student => !string.IsNullOrEmpty(student.Email))
