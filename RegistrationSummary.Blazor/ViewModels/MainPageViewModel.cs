@@ -73,6 +73,28 @@ public class MainPageViewModel : ViewModelBase
         }
     }
 
+    private bool _isConfigFileEditorVisible;
+    public bool IsConfigFileEditorVisible
+    {
+        get => _isConfigFileEditorVisible;
+        set
+        {
+            _isConfigFileEditorVisible = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private string? _configFileContent;
+    public string? ConfigFileContent
+    {
+        get => _configFileContent;
+        set
+        {
+            _configFileContent = value;
+            OnPropertyChanged();
+        }
+    }
+
     public MainPageViewModel(
         UserContextService userContextService,
         ILogger<MainPageViewModel> logger,
@@ -429,8 +451,46 @@ public class MainPageViewModel : ViewModelBase
         IsEmailEditorVisible = false;
     }
 
+    public void OpenConfigFileEditor()
+    {
+        var filePath = Path.Combine(_userContextService.FileService.BasePath, "Settings.json");
+        if (!File.Exists(filePath))
+        {
+            AddLog($"Settings.json file not found.",
+                    null,
+                    LogLevel.Error,
+                    MethodBase.GetCurrentMethod()?.Name ?? "OpenConfigFileEditor");
+            ShowToast("Settings.json file not found.");
+            return;
+        }
+
+        ConfigFileContent = File.ReadAllText(filePath);
+
+        IsConfigFileEditorVisible = true;
+    }
+
+    public void SaveConfigFile()
+    {
+        if (ConfigFileContent != null)
+        {
+            var filePath = Path.Combine(_userContextService.FileService.BasePath, "Settings.json");
+            File.WriteAllText(filePath, ConfigFileContent);
+            ShowToast("Config File saved - reload the site.");
+        }
+
+        AddLog("Settings.json was saved successfully.");
+        ShowToast("Settings.json was saved successfully.");
+
+        IsConfigFileEditorVisible = false;
+    }
+
     public void CloseEmailEditor()
     {
         IsEmailEditorVisible = false;
+    }
+
+    public void CloseConfigFileEditor()
+    {
+        IsConfigFileEditorVisible = false;
     }
 }
