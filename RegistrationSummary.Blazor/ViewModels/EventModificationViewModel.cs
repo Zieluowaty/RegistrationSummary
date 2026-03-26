@@ -251,7 +251,15 @@ public class EventModificationPageViewModel : ViewModelBase
         if (!confirm)
             return;
 
-        Event.Courses.Add(new Course());
+        var course = new Course();
+        
+        course.Id = Event.Courses.Any() ? Event.Courses.Max(cor => cor.Id) + 1 : 1;
+        course.Type = "Course";
+        course.Start = DateTime.Today;
+        course.End = DateTime.Today.AddDays(90);
+        course.DayOfWeek = "Monday";
+
+        Event.Courses.Add(course);
         OnPropertyChanged(nameof(Event));
     }
 

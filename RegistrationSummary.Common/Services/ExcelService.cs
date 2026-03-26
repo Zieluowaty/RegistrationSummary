@@ -818,14 +818,24 @@ public class ExcelService
 
 			try
 			{
-				var newStudent =
+				var paymentValue = row[ColumnNameToIndex(installmentSumColumn) + 1];
+				string paymentText = "0"; 
+
+				if (!string.IsNullOrEmpty(paymentText))
+                    paymentText = paymentValue.ToString().Replace(" zł", "").Replace(" ", "");
+
+				var paymentAmount = 0;
+				if (!int.TryParse(paymentText, out paymentAmount))
+					throw new Exception($"Cannot parse payment amount value.");
+
+                var newStudent =
 					new Student
 					{
 						Id = rowId++,
 						Email = email,
 						FirstName = row[firstNameColumnIndex]?.ToString()?.Trim() ?? string.Empty,
 						LastName = row[lastNameColumnIndex]?.ToString()?.Trim() ?? string.Empty,
-						PaymentAmount = int.Parse(row[ColumnNameToIndex(installmentSumColumn) + 1]?.ToString()?.Replace(" zł", "")?.Replace(" ", "") ?? "0"),
+						PaymentAmount = paymentAmount,
 						Installments = (row[installmentColumnIndex]?.ToString()?.Trim() ?? string.Empty).Equals("1"),
 						Courses = SelectedEvent?.Courses
 							.Where(
@@ -929,6 +939,7 @@ public class ExcelService
                     LogLevel.Error,
 					nameof(GetStudentsFromRegularSemestersSheet)
                 );
+
                 continue;
             }
         }
